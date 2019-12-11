@@ -35,7 +35,7 @@ except ImportError:
 
 setup(name='PyQtVisa',
 		description='Qt framework for building PyVISA applications for GPIB, RS232, TCPIP and USB instruments',
-		version='1.1.dev0',
+		version='1.1.dev1',
 		author='Michael Winters',
 		author_email="mwchalmers@protonmail.com",
 		keywords='Qt VISA GPIB USB serial RS232 measurement acquisition',
