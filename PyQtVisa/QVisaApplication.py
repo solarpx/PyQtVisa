@@ -34,6 +34,10 @@ from PyQt5.QtGui import QIcon
 from .widgets.QVisaInstWidget import QVisaInstWidget
 from .widgets.QVisaSaveWidget import QVisaSaveWidget
 
+# Import QVisaDataObject
+from .utils.QVisaDataObject import QVisaDataObject
+
+
 #####################################
 #  VISA APPLICATION CLASS
 #	
@@ -49,49 +53,18 @@ class QVisaApplication(QWidget):
 	def __init__(self, _config):
 
 		QWidget.__init__(self)
+
+		# Data and configuration
+		self._data = QVisaDataObject()
 		self._config = _config 
-		self._data = {}
-		self._meta = {}
 
-	#####################################
-	#  DATA MANAGEMENT METHODS
-	#			
+	# Getter method for data object
+	def _get_data(self):
+		return self._data
 
-	# Method to add data keys	
-	def _add_meas_keys(self, _meas_keys):
-		for _ in _meas_keys:
-			self._data[_] = None
-
-	# Method to add single key
-	def _add_meas_key(self, _meas_key):
-		self._data[_meas_key] = None
-
-	# Method set data keys
-	def _set_meas_keys(self, _meas_keys):
-		self._data = {_: None for _ in _meas_keys}
-
-	# Method to add data fields
-	def _set_data_fields(self, _meas_key, _data_keys):
-		if _meas_key in self._data.keys():
-			self._data[_meas_key]={_: [] for _ in _data_keys}
-
-	# Method to add metadata
-	def _set_meta(self, _key, _meta):
-		self._meta[_key]=_meta
-	
-	# Method to get metadata
-	def _get_meta(self, _key):
-		return self._meta[_key] if _key in self._meta.keys() else None
-
-	# Method to reset data	
+	# Method to reset data
 	def _reset_data(self):
-		self._data = {}	
-
-	# Keygen
-	def _meas_keygen(self, _key):
-		m = hashlib.sha256()
-		m.update( str( "%s@%s"%( _key, str(time.time())) ).encode() )
-		return ( str(m.hexdigest()[:7]) ,"%s %s"%(_key, str( m.hexdigest()[:7] ) ) )
+		self._data.reset()
 
 	#####################################
 	#  CONFIG WRAPPER METHODS

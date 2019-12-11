@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------------
-# 	pyQtVisa -> setup.py
+# 	PyQtVisa -> setup.py
 # 	Copyright (C) 2019 Michael Winters
 #	mwchalmers@protonmail.com
 # ---------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ except ImportError:
 
 setup(name='PyQtVisa',
 		description='Qt framework for building PyVISA applications for GPIB, RS232, TCPIP and USB instruments',
-		version='1.1.dev',
+		version='1.1.dev0',
 		author='Michael Winters',
 		author_email="mwchalmers@protonmail.com",
 		keywords='Qt VISA GPIB USB serial RS232 measurement acquisition',
@@ -61,7 +61,7 @@ setup(name='PyQtVisa',
 			'Programming Language :: Python :: 3.6',
 			'Programming Language :: Python :: 3.7',
 			],
-		packages=['PyQtVisa', 'PyQtVisa.widgets','PyQtVisa.drivers'],
+		packages=['PyQtVisa', 'PyQtVisa.widgets','PyQtVisa.drivers', 'PyQtVisa.utils'],
 		platforms="Linux, Windows, Mac",
 		#py_modules=['pyQtVisa'],
 		use_2to3=False,

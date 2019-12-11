@@ -74,6 +74,9 @@ class QVisaSaveWidget(QWidget):
 		# Otherwise save
 		else:
 
+			# Inject save note into QVisaDataObject
+			self._app._data.add_note( self._note.text() ) 
+
 			# Open file dialog
 			dialog = QFileDialog(self)
 			dialog.setFileMode(QFileDialog.AnyFile)
@@ -89,43 +92,7 @@ class QVisaSaveWidget(QWidget):
 			# 	*) for cancel button
 			if filenames != []:
 				
-				# Open file pointer	
-				f = open(filenames[0], 'w+')
-
-				# Start write sequence
-				with f:	
-		
-					# Write data header
-					f.write("*! QVisaDatafile v1.1\n")
-					if self._note.text() != "":
-						f.write("*! %s\n"%self._note.text())
-					
-					# Only save if data exists on a given key
-					for _meas_key, _meas_data in self._app._data.items():
-
-						# If measurement data exists on key
-						if _meas_data is not None:
-
-							# Write measurement key header
-							f.write("#! %s\n"%str(_meas_key))
-
-							# Write data keys
-							for _data_key in _meas_data.keys():
-								f.write("%s\t\t"%str(_data_key))
-							f.write("\n")
-										
-							# Write data values. 
-							# Use length of first column for index iterator
-							for i in range( len( _meas_data[ list(_meas_data.keys())[0] ] ) ):
-
-								# Go across the dictionary keys on iterator
-								for data_key in _meas_data.keys():
-									f.write("%s\t"%str(_meas_data[data_key][i]))
-								f.write("\n")
-
-							f.write("\n\n")
-
-					f.close()
+				self._app._data.write_to_file(filenames[0])
 
 				# Message box to indicate successful save
 				msg = QMessageBox()
