@@ -61,7 +61,7 @@ class QVisaSaveWidget(QWidget):
 	def gen_data_file(self):
 
 		# If data is empty display warning message
-		if  self._app._data == {}:
+		if  self._app._data.empty():
 
 			msg = QMessageBox()
 			msg.setIcon(QMessageBox.Warning)
@@ -75,7 +75,8 @@ class QVisaSaveWidget(QWidget):
 		else:
 
 			# Inject save note into QVisaDataObject
-			self._app._data.add_note( self._note.text() ) 
+			if self._note.text() != "":
+				self._app._data.add_note( self._note.text() ) 
 
 			# Open file dialog
 			dialog = QFileDialog(self)

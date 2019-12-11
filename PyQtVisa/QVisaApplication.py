@@ -82,7 +82,6 @@ class QVisaApplication(QWidget):
 	def _get_inst_byname(self, _name):
 		return self._config._get_inst_byname(_name)	
 
-
 	#####################################
 	#  INST/SAVE WIDGET CONSTRUCTORS
 	#	

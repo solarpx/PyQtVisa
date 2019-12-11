@@ -66,6 +66,10 @@ class QVisaDataObject:
 	def reset(self):
 		self.data = {}
 
+	# Method to check is empty (numpy syntax)
+	def empty(self):
+		return True if self.data == {} else False
+
 
 	#####################################
 	#  DATA INTERACTION
@@ -110,7 +114,7 @@ class QVisaDataObject:
 	#
 
 	# Add generic metadata
-	def add_meta(self, _key, _value):
+	def set_meta(self, _key, _value):
 		self.meta[_key] = _value
 
 	# Get meta method
@@ -119,11 +123,11 @@ class QVisaDataObject:
 
 	# Add type field
 	def add_type(self, _type):
-		self.add_meta("__type__", str(_type) )
+		self.set_meta("__type__", str(_type) )
 
 	# Add note field
 	def add_note(self, _note):
-		self.add_meta("__note__", str(_note) )
+		self.set_meta("__note__", str(_note) )
 
 
 	#####################################
@@ -258,4 +262,4 @@ class QVisaDataObject:
 									break
 
 		except AttributeError:
-			print("Overwriting existing data is protected. Use gen_data_object(_filename, overwrite=True) to overwrite")
+			print("Overwriting existing data is protected. Use read_from_file(_filename, overwrite=True) to overwrite")
