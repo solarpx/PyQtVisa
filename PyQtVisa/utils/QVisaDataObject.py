@@ -46,8 +46,13 @@ import hashlib
 class QVisaDataObject:
 
 	def __init__(self):
+
+		# Initialize data and meta dictionaries
 		self.data = {}
 		self.meta = {}
+
+		# Generate hash for data object
+		self.hash = self.gen_root_key("_root")
 
 
 	#####################################
@@ -70,23 +75,27 @@ class QVisaDataObject:
 	def empty(self):
 		return True if self.data == {} else False
 
+	# Method to get the root hash
+	def get_hash(self):
+		return self.hash
 
 	#####################################
 	#  DATA INTERACTION
 	#
 
-	# Keygen
-	def gen_data_key(self, _salt=""):
-		
-		# Initialize hashlib 
+	# Generate hash
+	def gen_hash(self, _salt=""):
+
 		m = hashlib.sha256()		
 		m.update( str( "%s%s"%( _salt, str(time.time())) ).encode() )
+		return str( m.hexdigest()[:7] )
+
+	# Generate hash for data key
+	def gen_data_key(self, _salt=""):
 		
-		# Generate hash and append to dictionary
-		_hash = str( m.hexdigest()[:7] )
-		self.data[_hash] = {}
-		
-		# Return hash (for convenience)
+		_hash = self.gen_hash(_salt)
+		self.data[ _hash ] = {}
+		self.meta[ _hash ] = {}
 		return _hash 
 	
 	# Method to add data fields
@@ -107,28 +116,25 @@ class QVisaDataObject:
 
 	# Return data method
 	def get_data(self, _hash):
-		return self.data[_hash] if _key in self.data.keys() else None
+		return self.data[_hash] if _hash in self.data.keys() else None
 
 	#####################################
 	#  META INTERACTION
 	#
 
 	# Add generic metadata
-	def set_meta(self, _key, _value):
-		self.meta[_key] = _value
+	def gen_root_key(self, _salt=""):
+		_hash = self.gen_hash(_salt)
+		self.meta[ _hash ] = {}
+		return _hash 
+
+	# Add meta method
+	def add_meta(self, _hash, _key, _value):
+		self.meta[_hash][_key] = _value
 
 	# Get meta method
-	def get_meta(self, _key):
-		return self.meta[_key] if _key in self.meta.keys() else None
-
-	# Add type field
-	def add_type(self, _type):
-		self.set_meta("__type__", str(_type) )
-
-	# Add note field
-	def add_note(self, _note):
-		self.set_meta("__note__", str(_note) )
-
+	def get_meta(self, _hash, _key):
+		return self.meta[_hash][_key] if _key in self.meta[_hash].keys() else None
 
 	#####################################
 	#  FILE IO
@@ -144,12 +150,15 @@ class QVisaDataObject:
 		
 			# Write data header
 			f.write("*! QVisaDataObject v1.1\n")
-
+			
 			# If a note exists write it
-			if self.get_meta("__note__") is not None:
+			if self.get_meta(self.hash, "__note__") is not None:
 
-				f.write( "*! note %s\n"%self.get_meta("__note__") )
-				
+				f.write( "*! note %s\n"%self.get_meta(self.hash, "__note__") )
+			
+			# Write root hash
+			f.write("*! hash %s\n"%self.hash)
+
 			# Only save if data exists on a given key
 			for _hash, _data in self.items():
 
@@ -157,9 +166,9 @@ class QVisaDataObject:
 				if _data is not None:
 
 					# Write measurement key header
-					if self.get_meta("__type__") is not None:
+					if self.get_meta(_hash, "__type__") is not None:
 
-						f.write( "#! %s %s\n"%( self.get_meta("__type__"), str(_hash) ) ) 
+						f.write( "#! %s %s\n"%( self.get_meta(_hash, "__type__"), str(_hash) ) ) 
 
 					else:
 						
