@@ -63,7 +63,6 @@ setup(name='PyQtVisa',
 			],
 		packages=['PyQtVisa', 'PyQtVisa.widgets','PyQtVisa.drivers', 'PyQtVisa.utils'],
 		platforms="Linux, Windows, Mac",
-		#py_modules=['pyQtVisa'],
 		use_2to3=False,
 		zip_safe=False,
 )
