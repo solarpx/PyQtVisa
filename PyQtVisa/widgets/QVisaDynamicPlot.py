@@ -24,6 +24,7 @@
 #
 
 #!/usr/bin/env python
+import random
 import numpy as np
 
 # Import QT backends
@@ -105,6 +106,11 @@ class QVisaDynamicPlot(QWidget):
 		if self.mpl_refresh_callback is not None:					
 			__func__ = getattr(self._app, self.mpl_refresh_callback)
 			__func__()	
+
+	# Return a base color by index or by random
+	def get_base_color(self, index=False):
+		_c = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
+		return c[_index] if index != False else random.choice(_c) 
 
 	# Add axes object to widget
 	def add_subplot(self, _key=111, twinx=False):
