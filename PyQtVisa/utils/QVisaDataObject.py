@@ -67,17 +67,26 @@ class QVisaDataObject:
 	def items(self):
 		return self.data.items()
 
-	# Method to reset data dictionaty
-	def reset(self):
-		self.data = {}
+	# Method to return data	
+	def data(self):	
+		return self.meta
+
+	# Method to return meta
+	def meta(self):	
+		return self.meta
+
+	# Method to get the root hash
+	def hash(self):
+		return self.hash
 
 	# Method to check is empty (numpy syntax)
 	def empty(self):
 		return True if self.data == {} else False
 
-	# Method to get the root hash
-	def get_hash(self):
-		return self.hash
+	# Method to reset data dictionaty
+	def reset(self):
+		self.data = {}
+	
 
 	#####################################
 	#  DATA INTERACTION
@@ -129,11 +138,21 @@ class QVisaDataObject:
 		return _hash 
 
 	# Add meta method
-	def add_meta(self, _hash, _key, _value):
+	def set_meta(self, _hash, _key, _value):
+
+		# Shortcut to reference toplevel hash
+		if _hash == "__self__":
+			_hash = self.hash
+
 		self.meta[_hash][_key] = _value
 
 	# Get meta method
 	def get_meta(self, _hash, _key):
+
+		# Shortcut to reference toplevel hash
+		if _hash == "__self__":
+			_hash = self.hash
+
 		return self.meta[_hash][_key] if _key in self.meta[_hash].keys() else None
 
 	#####################################

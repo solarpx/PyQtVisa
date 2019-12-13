@@ -77,12 +77,8 @@ class QVisaSaveWidget(QWidget):
 			# Handle the save note
 			if self._note.text() != "":
 				
-				# Get root hash from QVisaDataObject
-				_hash = self._app._data.get_hash()
-
-				# Inject data into meta
-				self._app._data.add_meta( _hash, "__note__", self._note.text() )
-
+				# Inject note into application meta
+				self._app._set_app_meta( "__note__", self._note.text() )
 
 			# Open file dialog
 			dialog = QFileDialog(self)

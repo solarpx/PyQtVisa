@@ -59,12 +59,16 @@ class QVisaApplication(QWidget):
 		self._config = _config 
 
 	# Getter method for data object
-	def _get_data(self):
+	def _get_data_object(self):
 		return self._data
 
 	# Method to reset data
-	def _reset_data(self):
+	def _reset_data_object(self):
 		self._data.reset()
+
+	# Generate data key method
+	def _gen_data_key(self, salt="_app"):
+		return self._data.gen_data_key(salt)
 
 	#####################################
 	#  CONFIG WRAPPER METHODS
@@ -81,6 +85,19 @@ class QVisaApplication(QWidget):
 	# Method to get insturment handles
 	def _get_inst_byname(self, _name):
 		return self._config._get_inst_byname(_name)	
+
+
+	#####################################
+	#  CONFIG WRAPPER METHODS
+	#	
+
+	# Method to set app-level meta
+	def _set_app_meta(self, key, value):
+		self._data.set_meta( "__self__" , key, value)
+
+	# Method to get app-level meta
+	def _get_app_meta(self, key):	
+		return self._data.get_meta("__self__", key)
 
 	#####################################
 	#  INST/SAVE WIDGET CONSTRUCTORS
