@@ -33,13 +33,11 @@ import hashlib
 # takes the following format: 
 #
 #	["<hash0>"]
-#		["__type__"] = (string)
 #		["<var0>"]	 = (list)
 #		["<var1>"]	 = (list)
 #		["<var2>"]	 = (list)
 #
 #	["<hash1>"]
-#		["__type__"] = (string)
 #		["<var1>"]	 = (list)
 #
 # The class contains methods to generate such data structures in software, to write
@@ -70,14 +68,6 @@ class QVisaDataObject:
 	def items(self):
 		return self.data.items()
 
-	# Method to return data	
-	def data(self):	
-		return self.meta
-
-	# Method to return meta
-	def meta(self):	
-		return self.meta
-
 	# Method to get the root hash
 	def hash(self):
 		return self.hash
@@ -89,7 +79,6 @@ class QVisaDataObject:
 	# Method to reset data dictionaty
 	def reset(self):
 		self.data = {}
-	
 
 	#####################################
 	#  DATA INTERACTION
@@ -110,19 +99,29 @@ class QVisaDataObject:
 		self.meta[ _hash ] = {}
 		return _hash 
 	
+	# Set data key (non-hased objects)
+	def add_data_key(self, _not_hash=""):
+		self.data[ _not_hash ] = {}
+		self.meta[ _not_hash ] = {}
+		return _not_hash
+
 	# Method to add data fields
-	def add_data_fields(self, _hash, _fields):
+	def set_data_fields(self, _hash, _fields):
 		self.data[_hash] = {_ : [] for _ in _fields} 
 
 	# Method to get data field
 	def get_data_field(self, _hash, _key):
 		return self.data[_hash][_key] if _key in self.data[_hash].keys() else None
 
-	# Method to set data field
+	# Method to append a single data field	
+	def add_data_field(self, _hash, _field):
+		self.data[_hash][_field] = []
+
+	# Method to set data value (directly)
 	def set_data_value(self, _hash, _key, _value):
 		self.data[_hash][_key] = _value
-	
-	# Method to append data field
+
+	# Method to append data to field
 	def append_data_value(self, _hash, _key, _value):
 		self.data[_hash][_key].append(_value)
 

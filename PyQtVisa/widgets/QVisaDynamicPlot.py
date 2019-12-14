@@ -30,7 +30,7 @@ import random
 import numpy as np
 
 # Import QT backends
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QCheckBox, QLabel, QMessageBox,  QSizePolicy
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QComboBox, QCheckBox, QLabel, QMessageBox,  QSizePolicy
 from PyQt5.QtGui import QIcon
 
 # Import matplotlibQT backends
@@ -43,9 +43,6 @@ import matplotlib.pyplot as plt
 from ..utils.QVisaColorMap import QVisaColorMap
 from ..utils.QVisaDataObject import QVisaDataObject
 
-
-
-
 # Dynamic plotting library for QtApplications
 class QVisaDynamicPlot(QWidget):
 
@@ -53,9 +50,16 @@ class QVisaDynamicPlot(QWidget):
 
 		QWidget.__init__(self)
 
-		# Dictionaries to add handles and configuration data
-		self._handles = {}
-		self._axes 	 = {}
+		# Axes are be stored in a standard dictionary
+		# 	[111]  = subplot(111)
+		#	[111t] = subplot(111).twinx()
+		self._axes = {}
+
+		# Axes handles will be stored in QVisaDataObject
+		#	[111]
+		# 		[<key0>] = handles(list)
+		# 		[<key1>] = handles(list)
+		self._handles = QVisaDataObject()
 
 		# QVisaColorMap class and generator function
 		self._cmap = QVisaColorMap()
@@ -80,6 +84,8 @@ class QVisaDynamicPlot(QWidget):
 		# HBoxLayout for toolbar and clear button
 		self._layout_toolbar = QHBoxLayout()	
 		self._layout_toolbar.addWidget(self.mpl_toolbar)
+		self._layout_toolbar.addWidget(self.mpl_handles_label)
+		self._layout_toolbar.addWidget(self.mpl_handles)
 		self._layout_toolbar.addWidget(self.mpl_refresh)
 
 		# HBoxLayout for plot object 
@@ -100,6 +106,13 @@ class QVisaDynamicPlot(QWidget):
 		self.mpl_figure  = plt.figure(figsize=(8,5))
 		self.mpl_canvas  = FigureCanvas(self.mpl_figure)
 		self.mpl_toolbar = NavigationToolbar(self.mpl_canvas, self)		
+
+		# Handle selector
+		self.mpl_handles_label = QLabel("<b>Show:</b>")
+		self.mpl_handles = QComboBox()
+		self.mpl_handles.addItem("all-traces")
+		self.mpl_handles.setFixedHeight(32)
+		self.mpl_handles.currentTextChanged.connect(self.update_visible_handles)
 
 		# Refresh button
 		self.mpl_refresh = QPushButton("Clear Data")
@@ -129,59 +142,121 @@ class QVisaDynamicPlot(QWidget):
 		return next(self._cgen)
 
 	# Add axes object to widget
-	def add_subplot(self, _key=111, twinx=False):
-		self._axes[str(_key)] = self.mpl_figure.add_subplot(_key)
+	def add_subplot(self, _axes_key=111, twinx=False):
+
+		self._axes[str(_axes_key)] = self.mpl_figure.add_subplot(_axes_key)
+		self._handles.add_data_key( str(_axes_key) )
 		if twinx:
-			self._axes[str(_key)+'t'] = self._axes[str(_key)].twinx()
+			self._axes[str(_axes_key)+'t'] = self._axes[str(_axes_key)].twinx()
+			self._handles.add_data_key( str(_axes_key) + 't' )
 
 	# Add axes xlabels
-	def set_axes_xlabel(self, _key, _xlabel):
-		self._axes[str(_key)].set_xlabel( str(_xlabel) ) 
+	def set_axes_xlabel(self, _axes_key, _xlabel):
+		self._axes[_axes_key].set_xlabel( str(_xlabel) ) 
 
 	# Add axes ylabels
-	def set_axes_ylabel(self, _key, _ylabel):
-		self._axes[str(_key)].set_ylabel( str(_ylabel) ) 
+	def set_axes_ylabel(self, _axes_key, _ylabel):
+		self._axes[_axes_key].set_ylabel( str(_ylabel) ) 
 
 	# Convenience method to set axes labels
-	def set_axes_labels(self, _key, _xlabel, _ylabel):
-		self.set_axes_xlabel(str(_key), _xlabel)
-		self.set_axes_ylabel(str(_key), _ylabel)	
+	def set_axes_labels(self, _axes_key, _xlabel, _ylabel):
+		self.set_axes_xlabel(str(_axes_key), _xlabel)
+		self.set_axes_ylabel(str(_axes_key), _ylabel)	
 
 	# Set axes adjust 
 	def set_axes_adjust(self, _left, _right, _top, _bottom):
 		self._adjust = {'l': _left, 'r': _right, 't': _top, 'b' : _bottom}	
 
+
 	# Add handle to axes
-	def add_axes_handle(self, _key, _handle_key, _color=None):
+	def add_axes_handle(self, _axes_key, _handle_key, _color=None):
 
+		# Add handles to comboBox
+		self.mpl_handles.addItem(_handle_key)
+
+		# Add option to set color directly
 		if _color is not None:
-			h, = self._axes[str(_key)].plot([], [], color=_color)
-		else:
-			h, = self._axes[str(_key)].plot([], [])
+			h, = self._axes[str(_axes_key)].plot([], [], color=_color)
 
-		self._handles[_handle_key] = h
+		# Otherwise generate color on defined map
+		else:
+			h, = self._axes[str(_axes_key)].plot([], [], color=self.gen_next_color())
+
+		# Add handle to handle keys	
+		self._handles.add_data_field(_axes_key, _handle_key)
+		self._handles.append_data_value(_axes_key, _handle_key, h)
 
 	# Method to get axes handles
 	def get_axes_handles(self):
 		return self._handles
 
 	# Update axes handle (set)
-	def set_handle_data(self, _handle_key, x_data, y_data):
+	def set_handle_data(self, _axes_key, _handle_key, x_data, y_data, _handle_index=0):
 
-		# Set xdata and ydata to handle
-		self._handles[_handle_key].set_xdata(x_data)
-		self._handles[_handle_key].set_ydata(y_data)
+		# Get the list of handles
+		_h = self._handles.get_data_field(_axes_key, _handle_key)
+
+		# Set data values on _handle_index
+		_h[_handle_index].set_xdata(x_data)
+		_h[_handle_index].set_ydata(y_data)
 
 	# Update axes handle (append)
-	def append_handle_data(self, _handle_key, x_value, y_value):
+	def append_handle_data(self, _axes_key, _handle_key, x_value, y_value, _handle_index=0):
+
+		# Get the list of handles
+		_h = self._handles.get_data_field(_axes_key, _handle_key)
 
 		# Append new values to handle data
-		_x = np.append(self._handles[_handle_key].get_xdata(), x_value)
-		_y = np.append(self._handles[_handle_key].get_ydata(), y_value)
+		_x = np.append(_h[_handle_index].get_xdata(), x_value)
+		_y = np.append(_h[_handle_index].get_ydata(), y_value)
 
 		# Set xdata and ydata to handle
-		self._handles[_handle_key].set_xdata(_x)
-		self._handles[_handle_key].set_ydata(_y)
+		_h[_handle_index].set_xdata(_x)
+		_h[_handle_index].set_ydata(_y)
+
+	# Method to redraw canvas lines
+	def update_visible_handles(self):	
+
+		# Get handle
+		_show_handle = self.mpl_handles.currentText()
+		
+		# Set all traces visible
+		if _show_handle == "all-traces":
+
+			# For each axis (e.g. 111)
+			for _axes_key in self._axes.keys():
+
+				# Check if there are handles on the key 
+				if self._handles.get_data(_axes_key) is not None:	
+
+					# Loop through handle_key and handle_list
+					for _handle_key, _handle_list in self._handles.get_data(_axes_key).items():
+
+						[_h.set_visible(True) for _h in _handle_list]
+
+			
+		else:
+
+			# For each axis (e.g. 111)
+			for _axes_key in self._axes.keys():
+
+				# Check if there are handles on the key 
+				if self._handles.get_data(_axes_key) is not None:	
+
+					# Loop through handle_key and handle_list
+					for _handle_key, _handle_list in self._handles.get_data(_axes_key).items():
+
+						if _show_handle == _handle_key:
+
+							[_h.set_visible(True) for _h in _handle_list]
+							
+						
+						else:
+
+							[_h.set_visible(False) for _h in _handle_list]
+
+
+		self.update_canvas()	
 
 	# Method to update canvas dynamically
 	def update_canvas(self):
@@ -208,7 +283,7 @@ class QVisaDynamicPlot(QWidget):
 	def refresh_canvas(self, supress_warning=False, supress_callback=False):
 		
 		# Only ask to redraw if there is data present
-		if (self._handles != {}) and (supress_warning == False):
+		if (self._handles.empty() == False) and (supress_warning == False):
 
 			msg = QMessageBox()
 			msg.setIcon(QMessageBox.Information)
@@ -253,8 +328,12 @@ class QVisaDynamicPlot(QWidget):
 			_axes.set_xlabel(_xlabel)
 			_axes.set_ylabel(_ylabel)
 
-		# Clear all handles
-		self._handles = {}
+		# Clear all handles. Add data key will reset data dictionaries to empty
+		[ self._handles.add_data_key(_axes_key) for _axes_key in self._handles.keys() ]
+
+		# Clear the combobox
+		self.mpl_handles.clear()
+		self.mpl_handles.addItem("all-traces")
 
 		# Reset the colormap
 		self._cmap.gen_reset()
