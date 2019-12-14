@@ -50,8 +50,15 @@ class QVisaColorMap:
 	def get_colors(self):
 		return self.colors
 
+	# Reset the generator when we change the colormap
+	def gen_reset(self):
+		self.index = -1
+
 	# Method to generate color base	
 	def gen_cmap_colors(self, _cmap="base", _ncolors=16):
+
+		# Reset the generator when we change the colormap
+		self.gen_reset()
 
 		# Base colormap
 		if _cmap == "base":
@@ -82,7 +89,6 @@ class QVisaColorMap:
 	# Generator function for colors
 	def gen_next_color(self):
 
-		index = -1
 		while True:
-			index += 1
-			yield self.colors[ index % len(self.colors) ]	
+			self.index += 1
+			yield self.colors[ self.index % len(self.colors) ]	

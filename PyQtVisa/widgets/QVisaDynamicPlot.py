@@ -40,8 +40,8 @@ from matplotlib.ticker import FormatStrFormatter
 import matplotlib.pyplot as plt
 
 # Import QVisaColorMap class
-from .utils.QVisaColorMap import QVisaColorMap
-from .utils.QVisaDataObject import QVisaDataObject
+from ..utils.QVisaColorMap import QVisaColorMap
+from ..utils.QVisaDataObject import QVisaDataObject
 
 
 
@@ -58,7 +58,7 @@ class QVisaDynamicPlot(QWidget):
 		self._axes 	 = {}
 
 		# QVisaColorMap class and generator function
-		self._cmap = QVisaColorMap("default")
+		self._cmap = QVisaColorMap()
 		self._cgen = self._cmap.gen_next_color()
 
 		# Dictionary to hold plot adjust values
@@ -255,6 +255,9 @@ class QVisaDynamicPlot(QWidget):
 
 		# Clear all handles
 		self._handles = {}
+
+		# Reset the colormap
+		self._cmap.gen_reset()
 
 		# Update canvas
 		self.update_canvas()
