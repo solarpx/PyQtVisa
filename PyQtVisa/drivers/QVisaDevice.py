@@ -24,6 +24,7 @@
 #
 
 #!/usr/bin/env python 
+# -*- coding: utf-8 -*-
 import visa
 
 # Basic driver file for insturment

@@ -1,29 +1,31 @@
 # ---------------------------------------------------------------------------------
 # 	QVisaDynamicPlot -> QWidget
-# 	Copyright (C) 2019 mwchalmers
-#	mwchalmers@protonmail.com
+#	Copyright (C) 2019 Michael Winters
+#	github: https://github.com/mesoic
+#	email:  mesoic@protonmail.com
 # ---------------------------------------------------------------------------------
-# 
-# 	Permission is hereby granted, free of charge, to any person obtaining a copy
-# 	of this software and associated documentation files (the "Software"), to deal
-# 	in the Software without restriction, including without limitation the rights
-# 	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# 	copies of the Software, and to permit persons to whom the Software is
-# 	furnished to do so, subject to the following conditions:
-# 	
-# 	The above copyright notice and this permission notice shall be included in all
-# 	copies or substantial portions of the Software.
-# 	
-# 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# 	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# 	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# 	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# 	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# 	SOFTWARE.
+#	
+#	Permission is hereby granted, free of charge, to any person obtaining a copy
+#	of this software and associated documentation files (the "Software"), to deal
+#	in the Software without restriction, including without limitation the rights
+#	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#	copies of the Software, and to permit persons to whom the Software is
+#	furnished to do so, subject to the following conditions:
+#	
+#	The above copyright notice and this permission notice shall be included in all
+#	copies or substantial portions of the Software.
+#	
+#	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#	SOFTWARE.
 #
 
-#!/usr/bin/env python
+#!/usr/bin/env python 
+# -*- coding: utf-8 -*-
 import random
 import numpy as np
 
@@ -37,6 +39,13 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from matplotlib.ticker import FormatStrFormatter
 import matplotlib.pyplot as plt
 
+# Import QVisaColorMap class
+from .utils.QVisaColorMap import QVisaColorMap
+from .utils.QVisaDataObject import QVisaDataObject
+
+
+
+
 # Dynamic plotting library for QtApplications
 class QVisaDynamicPlot(QWidget):
 
@@ -47,6 +56,10 @@ class QVisaDynamicPlot(QWidget):
 		# Dictionaries to add handles and configuration data
 		self._handles = {}
 		self._axes 	 = {}
+
+		# QVisaColorMap class and generator function
+		self._cmap = QVisaColorMap("default")
+		self._cgen = self._cmap.gen_next_color()
 
 		# Dictionary to hold plot adjust values
 		self._adjust = {'l': 0.15, 'r': 0.90, 't': 0.90, 'b' : 0.10}
@@ -107,10 +120,13 @@ class QVisaDynamicPlot(QWidget):
 			__func__ = getattr(self._app, self.mpl_refresh_callback)
 			__func__()	
 
-	# Return a base color by index or by random
-	def get_base_color(self, index=False):
-		_c = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
-		return c[_index] if index != False else random.choice(_c) 
+	# Wrapper method to set(change) colormap
+	def gen_cmap_colors(self, _cmap="default"):
+		self._cmap.gen_cmap_colors(_cmap)
+
+	# Wrapper method to gnertae next color
+	def gen_next_color(self):
+		return next(self._cgen)
 
 	# Add axes object to widget
 	def add_subplot(self, _key=111, twinx=False):
