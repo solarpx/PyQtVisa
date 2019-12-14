@@ -167,12 +167,15 @@ class QVisaDynamicPlot(QWidget):
 	def set_axes_adjust(self, _left, _right, _top, _bottom):
 		self._adjust = {'l': _left, 'r': _right, 't': _top, 'b' : _bottom}	
 
-
 	# Add handle to axes
 	def add_axes_handle(self, _axes_key, _handle_key, _color=None):
 
-		# Add handles to comboBox
-		self.mpl_handles.addItem(_handle_key)
+		# Get handle keys from comboBox
+		_handle_keys = [self.mpl_handles.itemText(i) for i in range(self.mpl_handles.count())]
+
+		# Check if handle key is in list
+		if _handle_key not in _handle_keys:
+			self.mpl_handles.addItem(_handle_key)
 
 		# Add option to set color directly
 		if _color is not None:

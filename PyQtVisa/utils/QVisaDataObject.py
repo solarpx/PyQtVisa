@@ -115,7 +115,8 @@ class QVisaDataObject:
 
 	# Method to append a single data field	
 	def add_data_field(self, _hash, _field):
-		self.data[_hash][_field] = []
+		if _field not in self.data[_hash].keys():
+			self.data[_hash][_field] = []
 
 	# Method to set data value (directly)
 	def set_data_value(self, _hash, _key, _value):
