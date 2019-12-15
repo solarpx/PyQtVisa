@@ -144,11 +144,13 @@ class QVisaDynamicPlot(QWidget):
 	# Add axes object to widget
 	def add_subplot(self, _axes_key=111, twinx=False):
 
+		self._handles.add_key( str(_axes_key) )
 		self._axes[str(_axes_key)] = self.mpl_figure.add_subplot(_axes_key)
-		self._handles.add_data_key( str(_axes_key) )
+		
 		if twinx:
+			self._handles.add_key( str(_axes_key) + 't' )
 			self._axes[str(_axes_key)+'t'] = self._axes[str(_axes_key)].twinx()
-			self._handles.add_data_key( str(_axes_key) + 't' )
+			
 
 	# Add axes xlabels
 	def set_axes_xlabel(self, _axes_key, _xlabel):
@@ -186,8 +188,8 @@ class QVisaDynamicPlot(QWidget):
 			h, = self._axes[str(_axes_key)].plot([], [], color=self.gen_next_color())
 
 		# Add handle to handle keys	
-		self._handles.add_data_field(_axes_key, _handle_key)
-		self._handles.append_data_value(_axes_key, _handle_key, h)
+		self._handles.add_subkey(_axes_key, _handle_key)
+		self._handles.append_subkey_data(_axes_key, _handle_key, h)
 
 	# Method to get axes handles
 	def get_axes_handles(self):
@@ -197,7 +199,7 @@ class QVisaDynamicPlot(QWidget):
 	def set_handle_data(self, _axes_key, _handle_key, x_data, y_data, _handle_index=0):
 
 		# Get the list of handles
-		_h = self._handles.get_data_field(_axes_key, _handle_key)
+		_h = self._handles.get_subkey_data(_axes_key, _handle_key)
 
 		# Set data values on _handle_index
 		_h[_handle_index].set_xdata(x_data)
@@ -207,7 +209,7 @@ class QVisaDynamicPlot(QWidget):
 	def append_handle_data(self, _axes_key, _handle_key, x_value, y_value, _handle_index=0):
 
 		# Get the list of handles
-		_h = self._handles.get_data_field(_axes_key, _handle_key)
+		_h = self._handles.get_subkey_data(_axes_key, _handle_key)
 
 		# Append new values to handle data
 		_x = np.append(_h[_handle_index].get_xdata(), x_value)
@@ -227,16 +229,15 @@ class QVisaDynamicPlot(QWidget):
 		if _show_handle == "all-traces":
 
 			# For each axis (e.g. 111)
-			for _axes_key in self._axes.keys():
+			for _axes_key in self._handles.keys():
 
 				# Check if there are handles on the key 
-				if self._handles.get_data(_axes_key) is not None:	
+				if self._handles.subitems(_axes_key) is not None:	
 
 					# Loop through handle_key and handle_list
-					for _handle_key, _handle_list in self._handles.get_data(_axes_key).items():
+					for _handle_key, _handle_list in self._handles.subitems(_axes_key):
 
 						[_h.set_visible(True) for _h in _handle_list]
-
 			
 		else:
 
@@ -244,16 +245,15 @@ class QVisaDynamicPlot(QWidget):
 			for _axes_key in self._axes.keys():
 
 				# Check if there are handles on the key 
-				if self._handles.get_data(_axes_key) is not None:	
+				if self._handles.subitems(_axes_key) is not None:	
 
 					# Loop through handle_key and handle_list
-					for _handle_key, _handle_list in self._handles.get_data(_axes_key).items():
+					for _handle_key, _handle_list in self._handles.subitems(_axes_key):
 
 						if _show_handle == _handle_key:
 
 							[_h.set_visible(True) for _h in _handle_list]
-							
-						
+													
 						else:
 
 							[_h.set_visible(False) for _h in _handle_list]
@@ -331,8 +331,9 @@ class QVisaDynamicPlot(QWidget):
 			_axes.set_xlabel(_xlabel)
 			_axes.set_ylabel(_ylabel)
 
-		# Clear all handles. Add data key will reset data dictionaries to empty
-		[ self._handles.add_data_key(_axes_key) for _axes_key in self._handles.keys() ]
+		# Clear registered handles
+		# Calling add_key() will re-initialize data dictionary to {} for axes
+		[ self._handles.add_key(_axes_key) for _axes_key in self._handles.keys() ]
 
 		# Clear the combobox
 		self.mpl_handles.clear()

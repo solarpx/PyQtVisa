@@ -80,7 +80,7 @@ class QVisaSaveWidget(QWidget):
 			if self._note.text() != "":
 				
 				# Inject note into application meta
-				self._app._set_app_meta( "__note__", self._note.text() )
+				self._app._set_app_metadata( "__note__", self._note.text() )
 
 			# Open file dialog
 			dialog = QFileDialog(self)
