@@ -45,6 +45,9 @@ class QVisaInstWidget(QWidget):
 		self._select = QComboBox()
 		self._select.currentTextChanged.connect(self._run_callback)
 
+		# List of registered names
+		self._registered = []
+
 		# Widget select add items
 		if _app._get_inst_names() is not None:
 			self._select.addItems( _app._get_inst_names() )
@@ -56,7 +59,7 @@ class QVisaInstWidget(QWidget):
 		# Set layout
 		self.setLayout(self._layout)
 
-		# Callback function on text changed 
+		# Callback function on text changed
 		self._callback = None
 
 		# Cache reference to _app for callback
@@ -72,12 +75,28 @@ class QVisaInstWidget(QWidget):
 			__func__ = getattr(self._app, self._callback)
 			__func__()	
 
-	# Method to refresh insurment widget
-	def refresh(self,_app):
+	# Method to sync instrument widget to app
+	def refresh(self, _app):
 	
-		# If there are insturment handles
-		self._select.clear()
-		self._select.addItems( _app._get_inst_names() )	
+		# Get current list of names registered to app
+		for _name in _app._get_inst_names():
+			
+			# If name is not registered
+			if self.isRegistered(_name) == False:
+	
+				# Add it to the combobox	
+				self._select.addItem(_name)	
+				self._registered.append(_name)
+
+
+	# Register insturment by name
+	def registerInst(self, _name):
+		self._select.addItem(_name)
+		self._registered.append(_name)
+	
+	# CHeck if name has been registered		
+	def isRegistered(self, _name):
+		return True if _name in self._registered else False
 
 	# Wrapper method for currentText	
 	def currentText(self):

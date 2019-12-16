@@ -102,21 +102,27 @@ class QVisaDataObject:
 	# Initialize string as data key
 	def add_key(self, _key=""):
 		
-		self.data[ _key ] = {}
-		self.meta[ _key ] = {}
+		self.data[_key] = {}
+		self.meta[_key] = {}
 		return _key
 
 	# Initialize hash for data key
 	def add_hash_key(self, _salt=""):
 
 		_hash = self.gen_hash(_salt)
-		self.data[ _hash ] = {}
-		self.meta[ _hash ] = {}
+		self.data[_hash] = {}
+		self.meta[_hash] = {}
 		return _hash 
 
 	# Return data method 
 	def get_key_data(self, _key):
 		return self.data[_key]
+
+	# Method to delete key
+	def del_key(self, _key):
+		if _key in self.data.keys():
+			del self.data[_key]
+			del self.meta[_key]
 
 
 	#####################################
@@ -143,6 +149,11 @@ class QVisaDataObject:
 	# Method to append data to field
 	def append_subkey_data(self, _key, _subkey, _data):
 		self.data[_key][_subkey].append(_data)
+
+	# Method to delete subkey
+	def del_subkey(self, _key, _subkey):
+		if _subkey in self.data[_key].keys():
+			del self.data[_key][_subkey]
 
 
 	#####################################
