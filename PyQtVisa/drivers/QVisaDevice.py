@@ -25,7 +25,7 @@
 
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*-
-import visa
+import pyvisa
 
 # Basic driver file for insturment
 class QVisaDevice:
@@ -34,7 +34,7 @@ class QVisaDevice:
 	def __init__(self, _addr, _name):	
 
 		# Extract SPCI handle for Keithley
-		rm = visa.ResourceManager()
+		rm = pyvisa.ResourceManager()
 
 		# Attempt to open resource. 
 		# __init__ should appear in try except block

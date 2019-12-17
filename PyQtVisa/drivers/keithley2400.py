@@ -26,8 +26,8 @@
 
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*- 
-import visa
 import time
+import pyvisa
 
 # Import pyVisaDevice
 from .QVisaDevice import QVisaDevice
@@ -115,5 +115,5 @@ class keithley2400(QVisaDevice):
 		while True:
 			try:
 				return self.query(":READ?")
-			except visa.VisaIOError:
+			except pyvisa.VisaIOError:
 				time.sleep(0.1)	
