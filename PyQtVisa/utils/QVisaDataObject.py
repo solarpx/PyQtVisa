@@ -120,9 +120,19 @@ class QVisaDataObject:
 
 	# Method to delete key
 	def del_key(self, _key):
+		
 		if _key in self.data.keys():
 			del self.data[_key]
 			del self.meta[_key]
+
+	# Method to check if all keys are empty		
+	def keys_empty(self):
+		
+		for _key in self.data.keys():
+			if self.data[_key] != {}:
+				return False
+
+		return True
 
 
 	#####################################

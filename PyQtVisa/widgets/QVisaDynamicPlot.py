@@ -43,7 +43,7 @@ import matplotlib.pyplot as plt
 from ..utils.QVisaColorMap import QVisaColorMap
 from ..utils.QVisaDataObject import QVisaDataObject
 
-# Dynamic plotting library for QtApplications
+# Dynamic plotting library for QVisaApplications
 class QVisaDynamicPlot(QWidget):
 
 	def __init__(self, _app):
@@ -73,6 +73,7 @@ class QVisaDynamicPlot(QWidget):
 
 		# Cache a reference to the calling application
 		self._app = _app
+		self.sync = False
 
 	def _gen_main_layout(self):
 
@@ -132,6 +133,13 @@ class QVisaDynamicPlot(QWidget):
 		if self.mpl_refresh_callback is not None:					
 			__func__ = getattr(self._app, self.mpl_refresh_callback)
 			__func__()	
+
+	# Sync application data. When True, refresh lines will attempt to 
+	# del self._app._data.data[_handle_key] when clearing data in axes 
+	# self._handles[_axes_key][_handle_key]. This will synchonize plots
+	# with application data.
+	def sync_application_data(self, _bool):
+		self.sync = _bool
 
 	# Wrapper method to set(change) colormap
 	def gen_cmap_colors(self, _cmap="default"):
@@ -245,7 +253,7 @@ class QVisaDynamicPlot(QWidget):
 			for _axes_key in self._axes.keys():
 
 				# Check if there are handles on the key 
-				if self._handles.subitems(_axes_key) is not None:	
+				if self._handles.subitems(_axes_key) is not None:
 
 					# Loop through handle_key and handle_list
 					for _handle_key, _handle_list in self._handles.subitems(_axes_key):
@@ -283,14 +291,14 @@ class QVisaDynamicPlot(QWidget):
 		self.mpl_canvas.flush_events()
 
 	# Refresh canvas. Note callback will expose args as False
-	def refresh_canvas(self, supress_warning=False, supress_callback=False):
+	def refresh_canvas(self, supress_warning=False):
 		
 		# Only ask to redraw if there is data present
-		if (self._handles.empty() == False) and (supress_warning == False):
+		if (self._handles.keys_empty() == False) and (supress_warning == False):
 
 			msg = QMessageBox()
 			msg.setIcon(QMessageBox.Information)
-			msg.setText("Clear all measurement data?")
+			msg.setText("Clear measurement data (%s)?"%self.mpl_handles.currentText())
 			msg.setWindowTitle("QDynamicPlot")
 			msg.setWindowIcon(self._app._get_icon())
 			msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
@@ -298,11 +306,8 @@ class QVisaDynamicPlot(QWidget):
 
 			if self.msg_clear == QMessageBox.Yes:
 
-				# Optionally supress callback execution
-				if supress_callback == False:
-					self._run_mpl_refresh_callback()
-	
-				self._refresh_canvas()
+				self._run_mpl_refresh_callback()
+				self.refresh_lines()
 				return True
 
 			else:
@@ -310,14 +315,63 @@ class QVisaDynamicPlot(QWidget):
 
 		else:
 			
-			if supress_callback == False:
-				self._run_mpl_refresh_callback()
-
-			self._refresh_canvas()		
+			self._run_mpl_refresh_callback()
+			self.refresh_lines()		
 			return True
 
-	# Internal method to clear axes		
-	def _refresh_canvas(self):
+
+	# Method to delete lines from handle
+	def refresh_lines(self):
+
+		# For each axis (e.g. 111)
+		for _axes_key in self._axes.keys():
+
+			# Check if there are handles on the key 
+			if self._handles.subitems(_axes_key) is not None:
+
+				# Create empty handle cache
+				_del_cache = []
+
+				# Loop through handle_key and handle_list
+				for _handle_key, _handle_list in self._handles.subitems(_axes_key):
+
+					# Check if first handle is visible
+					if _handle_list[0].get_visible() == True:
+
+						# Cache the handle key for deletion
+						_del_cache.append(_handle_key)
+
+				# Loop through cached keys
+				for _handle_key in _del_cache:
+
+					# Remove handles (mpl.Artist obejcts) by calling destructor
+					for _handle in self._handles.get_subkey_data(_axes_key, _handle_key):
+						_handle.remove()
+
+					# Delete the subkey from _handles object
+					self._handles.del_subkey(_axes_key, _handle_key)
+					
+					# Remove subkey from handles dropdown
+					self.mpl_handles.removeItem(self.mpl_handles.findText(_handle_key))
+
+					# Remove key from application data if syncing
+					if self.sync == True:
+						_data = self._app._get_data_object()
+						_data.del_key(_handle_key)
+
+		# If deleting all traces, reset the colormap
+		if self.mpl_handles.currentText() == "all-traces":
+			self._cmap.gen_reset()
+
+		# Otherwise set text to "all-traces"
+		else:
+			self.mpl_handles.setCurrentIndex(0)
+
+		# Redraw canvas
+		self.update_canvas()
+
+	# Method to reset axes
+	def reset_canvas(self):
 
 		# Clear the axes 
 		for _key, _axes in self._axes.items():
