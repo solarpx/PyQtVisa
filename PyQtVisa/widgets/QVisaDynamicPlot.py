@@ -323,41 +323,46 @@ class QVisaDynamicPlot(QWidget):
 	# Method to delete lines from handle
 	def refresh_lines(self):
 
-		# For each axis (e.g. 111)
+		# Create empty handle cache
+		_del_cache = []
+
+		# For each axes (e.g. 111)
 		for _axes_key in self._axes.keys():
 
 			# Check if there are handles on the key 
 			if self._handles.subitems(_axes_key) is not None:
 
-				# Create empty handle cache
-				_del_cache = []
-
-				# Loop through handle_key and handle_list
+				# Loop through handle_key, handle_list objects on axes
 				for _handle_key, _handle_list in self._handles.subitems(_axes_key):
 
-					# Check if first handle is visible
-					if _handle_list[0].get_visible() == True:
+					# Check if first handle in the list is visible 
+					if _handle_list[0].get_visible() == True and _handle_key not in _del_cache:
 
-						# Cache the handle key for deletion
+						# Cache the handle key for deletion if it has not beed cached yet
 						_del_cache.append(_handle_key)
+						
 
-				# Loop through cached keys
-				for _handle_key in _del_cache:
+		# Loop through cached keys
+		for _handle_key in _del_cache:
 
-					# Remove handles (mpl.Artist obejcts) by calling destructor
-					for _handle in self._handles.get_subkey_data(_axes_key, _handle_key):
-						_handle.remove()
+			# Check for key on each axis (e.g. 111, 111t)
+			for _axes_key in self._axes.keys():
 
-					# Delete the subkey from _handles object
-					self._handles.del_subkey(_axes_key, _handle_key)
+				# Remove handles (mpl.Artist obejcts) by calling destructor
+				for _handle in self._handles.get_subkey_data(_axes_key, _handle_key):
+					_handle.remove()
+
+			# Delete the _handle_key from _handles object
+			self._handles.del_subkey(_axes_key, _handle_key)
 					
-					# Remove subkey from handles dropdown
-					self.mpl_handles.removeItem(self.mpl_handles.findText(_handle_key))
+			# Remove _handle_key from dropdown
+			self.mpl_handles.removeItem(self.mpl_handles.findText(_handle_key))
 
-					# Remove key from application data if syncing
-					if self.sync == True:
-						_data = self._app._get_data_object()
-						_data.del_key(_handle_key)
+			# Remove _handle_key from application data if syncing
+			if self.sync == True:
+				_data = self._app._get_data_object()
+				_data.del_key(_handle_key)
+
 
 		# If deleting all traces, reset the colormap
 		if self.mpl_handles.currentText() == "all-traces":
@@ -369,6 +374,7 @@ class QVisaDynamicPlot(QWidget):
 
 		# Redraw canvas
 		self.update_canvas()
+
 
 	# Method to reset axes
 	def reset_canvas(self):
