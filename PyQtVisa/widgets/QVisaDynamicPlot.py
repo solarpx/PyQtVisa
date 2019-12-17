@@ -112,12 +112,13 @@ class QVisaDynamicPlot(QWidget):
 		self.mpl_handles_label = QLabel("<b>Show:</b>")
 		self.mpl_handles = QComboBox()
 		self.mpl_handles.addItem("all-traces")
-		self.mpl_handles.setFixedHeight(32)
+		self.mpl_handles.setFixedHeight(30)
 		self.mpl_handles.currentTextChanged.connect(self.update_visible_handles)
 
 		# Refresh button
 		self.mpl_refresh = QPushButton("Clear Data")
 		self.mpl_refresh.clicked.connect(self.refresh_canvas)
+		self.mpl_refresh.setFixedHeight(32)
 		self.mpl_refresh_callback = None
 
 	# Method to enable and disable mpl_refresh button
