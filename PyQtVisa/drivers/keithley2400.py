@@ -35,9 +35,9 @@ from .QVisaDevice import QVisaDevice
 class keithley2400(QVisaDevice):
 
 	# Initialize Driver
-	def __init__(self, _addr, _name="Keithley"):
+	def __init__(self, _comm, _addr, _name="Keithley"):
 
-		super(keithley2400, self).__init__(_addr, _name)
+		super(keithley2400, self).__init__(_comm, _addr, _name)
 
 	# Identify command
 	def idn(self):

@@ -31,23 +31,48 @@ import pyvisa
 class QVisaDevice:
 
 	# Initialize
-	def __init__(self, _addr, _name):	
+	def __init__(self, _comm, _addr, _name):
 
 		# Extract SPCI handle for Keithley
-		rm = pyvisa.ResourceManager()
+		self.rm = pyvisa.ResourceManager()
 
-		# Attempt to open resource. 
-		# __init__ should appear in try except block
-		self.inst = rm.open_resource('GPIB0::%s::INSTR'%_addr)
-		self.inst.timeout = 2000
-		self.inst.clear()
-
-		# GPIB address and name
+		# Communication address and name
+		self.comm = str(_comm)
 		self.addr = int(_addr)
 		self.name = str(_name)
 
+		# Initialize communication modes
+		if _comm in ["gpib", "GPIB"]:
+			self.gpib()
+
+		if _comm in ["rs232", "RS232", "RS-232"]:	
+			self.rs232()
+
 		# Create buffer object
 		self.buffer = ""
+
+	# GPIB Device
+	# Attempt to open resource. 
+	def gpib(self):	
+
+		self.inst = self.rm.open_resource('GPIB0::%s::INSTR'%self.addr)
+		self.inst.timeout = 2000
+		self.inst.clear()
+
+		# Append Address to name
+		self.name = "%s GPIB0::%s"%(self.name, self.addr)
+
+	# Serial Device
+	# Attempt to open resource. 
+	def rs232(self):
+		
+		self.inst = self.rm.open_resource('ASRL%s::INSTR'%self.addr)
+		self.inst.timeout = 2000
+		self.inst.clear()		
+
+		# Append Address to name
+		self.name = "%s ASRL::%s"%(self.name, self.addr)
+
 
 	# Close instrument on program termination
 	def close(self): 

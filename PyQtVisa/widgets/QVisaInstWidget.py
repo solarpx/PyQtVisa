@@ -73,7 +73,7 @@ class QVisaInstWidget(QWidget):
 	def _run_callback(self):
 		if self._callback is not None:					
 			__func__ = getattr(self._app, self._callback)
-			__func__()	
+			__func__()
 
 	# Method to sync instrument widget to app
 	def refresh(self, _app):
