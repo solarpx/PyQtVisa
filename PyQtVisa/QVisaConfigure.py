@@ -40,9 +40,9 @@ import os
 import sys
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QMessageBox 
 
-# Import QVisaInstWidget and QVisaInitWidget
+# Import QVisaInstWidget and QVisaCommWidget
 from .widgets.QVisaInstWidget import QVisaInstWidget
-from .widgets.QVisaInitWidget import QVisaInitWidget
+from .widgets.QVisaCommWidget import QVisaCommWidget
 
 # The purpouse of this object is to bind a list pyVisaDevices to a QWidget 
 # in a configuration context. The idea is to first construct a QVisaConifg
@@ -105,6 +105,14 @@ class QVisaConfigure(QWidget):
 		# If we do not find device return None		
 		return None
 
+
+	# Get insturment by port identifier
+	def _get_inst_byport(self, _port):
+		for _ in self._inst:
+			if _.port == _port:
+				return _
+
+
 	# Helper method to pack widgets into hbox
 	def _gen_hbox_widget(self, _widget_list):
 	
@@ -133,6 +141,6 @@ class QVisaConfigure(QWidget):
 	def _gen_inst_widget(self):
 		return QVisaInstWidget(self)
 
-	# Method to generate initialize widget
-	def _gen_init_widget(self):
-		return QVisaInitWidget(self)
+	# Method to generate communication widget
+	def _gen_comm_widget(self):
+		return QVisaCommWidget(self)

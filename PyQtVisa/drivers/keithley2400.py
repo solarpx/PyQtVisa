@@ -35,13 +35,21 @@ from .QVisaDevice import QVisaDevice
 class keithley2400(QVisaDevice):
 
 	# Initialize Driver
-	def __init__(self, _comm, _addr, _name="Keithley"):
+	def __init__(self, _comm, _addr, _name=None):
 
+		# Default name = "Keithley"
+		_name = "Keithley" if _name == None else str(_name)
+
+		# Call super
 		super(keithley2400, self).__init__(_comm, _addr, _name)
 
 	# Identify command
 	def idn(self):
 		return self.query('*IDN?')
+
+	# Check idn command
+	def check_idn(self):
+		return False if "KEITHLEY INSTRUMENTS INC.,MODEL 24" not in str(self.idn()) else True
 
 	# Reset command
 	def reset(self):

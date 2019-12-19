@@ -31,18 +31,23 @@ import pyvisa
 class QVisaDevice:
 
 	# Initialize
-	def __init__(self, _comm, _addr, _name):
+	def __init__(self, _comm, _addr, _name="QVisaDevice"):
 
-		# Extract SPCI handle for Keithley
+		# Cache initialization data
+		self.comm = _comm
+		self.addr = _addr 
+		self.name = _name
+
+		# Helper strings
+		self.type = _name
+
+		# Extract insturment handle for Keithley
 		self.rm = pyvisa.ResourceManager()
-
-		# Communication address and name
-		self.comm = str(_comm)
-		self.addr = int(_addr)
-		self.name = str(_name)
 
 		# Initialize communication modes
 		if _comm in ["gpib", "GPIB"]:
+			self.port = "ASRL::%s"%self.addr
+
 			self.gpib()
 
 		if _comm in ["rs232", "RS232", "RS-232"]:	
@@ -59,6 +64,9 @@ class QVisaDevice:
 		self.inst.timeout = 2000
 		self.inst.clear()
 
+		# Define port
+		self.port = "GPIB0::%s"%(self.addr)
+
 		# Append Address to name
 		self.name = "%s GPIB0::%s"%(self.name, self.addr)
 
@@ -70,8 +78,11 @@ class QVisaDevice:
 		self.inst.timeout = 2000
 		self.inst.clear()		
 
+		# Define port
+		self.port = "ASRL::%s"%(self.addr)
+
 		# Append Address to name
-		self.name = "%s ASRL::%s"%(self.name, self.addr)
+		self.name = "%s %s"%(self.name, self.port)
 
 
 	# Close instrument on program termination

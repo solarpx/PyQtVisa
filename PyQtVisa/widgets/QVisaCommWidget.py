@@ -26,22 +26,26 @@
 
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*-
+import pyvisa
 
 # Import QT backends
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QLabel, QStackedWidget, QSpinBox, QPushButton
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QLabel, QStackedWidget, QSpinBox, QPushButton, QMessageBox
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QIcon
+
 
 # Impot QVisaInstWidget widget
 from .QVisaInstWidget import QVisaInstWidget
 
-class QVisaInitWidget(QWidget):
+class QVisaCommWidget(QWidget):
 
-	def __init__(self, _app):
+	def __init__(self, _config):
 
 		# Call QWidget init
 		QWidget.__init__(self)
 
-		# Cache calling application
-		self._app = _app
+		# Cache calling QVisaConfigure object
+		self._config = _config
 
 		# Generate main layout
 		self.gen_main_layout()
@@ -58,7 +62,7 @@ class QVisaInitWidget(QWidget):
 		# Initialize device button
 		self.init_button = QPushButton("Initialize Device")
 		self.init_button.clicked.connect(self._run_init_callback)
-		self.inst_widget = QVisaInstWidget(self._app)
+		self.inst_widget = QVisaInstWidget(self._config)
 
 		# Configuration selector
 		self.layout.addWidget(self.init_button)
@@ -156,6 +160,18 @@ class QVisaInitWidget(QWidget):
 	
 		return self.rs232_widget
 
+	# Method to get current insturemnt
+	def get_current_inst(self):
+
+		_name = self.inst_widget.currentText() 
+		_inst = self._config._get_inst_byname(_name)
+
+		if _inst is not None:
+			return _inst
+
+		else: 
+			return None
+
 	# Update comm_pages (QSpinBox, QLabel)
 	def update_comm_pages(self):
 
@@ -180,23 +196,165 @@ class QVisaInitWidget(QWidget):
 	def get_comm(self):
 		return self.comm_select.currentText()
 
+	def get_icon(self):
+
+		try :
+			return self._config._icon
+		except: 
+			return QIcon()
+
+	# Return port string
+	def get_port(self):
+
+		if self.get_comm() == "GPIB":
+			return "GPIB0::%s"%self.get_addr()
+
+		if self.get_comm() == "RS-232":
+			return "ASRL::%s"%self.get_addr()
+
+
 	# Refresh instrument widget
 	def refresh(self):
 		self.inst_widget.blockSignals(True)
-		self.inst_widget.refresh( self._app )
+		self.inst_widget.refresh( self._config )
 		self.inst_widget.blockSignals(False)
 
+
+	# initalize Insturment
+	def init(self, __QVisaDevice__):
+
+		# Extract ini parameters
+		_comm = self.get_comm()
+		_addr = self.get_addr()
+
+		# Get the port identifier we are trying initialize
+		_port = self.get_port()
+
+		# Check if insturement has been initialized in calling application
+		if self._config._get_inst_byport(_port) is None:
+
+			# Try to initialize device
+			try:
+
+				# Call class constructor
+				_inst = __QVisaDevice__(_comm, _addr)
+
+				# Try to call idn.
+				try:
+					_inst.idn()
+					
+
+					# If check_idn() is defined in driver file
+					if hasattr(_inst, "check_idn"):
+
+						# If idn checks out, return inst handle
+						if _inst.check_idn():
+
+							# Message box to display success
+							msg = QMessageBox()
+							msg.setIcon(QMessageBox.Information)
+							msg.setText("Initialized device at %s"%(_inst.name))
+							msg.setWindowTitle("pyVISA Connection")
+							msg.setWindowIcon(self.get_icon())
+							msg.setStandardButtons(QMessageBox.Ok)
+							msg.exec_()
+				
+							# Add instrument to configuraion object and reset
+							self._config._add_inst_handle(_inst)
+							self._config._get_inst_byaddr(_addr).reset()
+							self.refresh()
+									
+							# Return insturemnt handle
+							return _inst
+
+						else:
+
+							# Message box to display error
+							msg = QMessageBox()
+							msg.setIcon(QMessageBox.Warning)
+							msg.setText("Driver Error: %s is not a %s"%(_port, _inst.type))
+							msg.setWindowTitle("pyVISA Error")
+							msg.setWindowIcon(self.get_icon())
+							msg.setStandardButtons(QMessageBox.Ok)
+							msg.exec_()
+						
+							return None
+
+					# If check_idn() is not defined
+					else:
+
+						# Message box to display success
+						msg = QMessageBox()
+						msg.setIcon(QMessageBox.Information)
+						msg.setText("Initialized unverified device at %s"%(_inst.name))
+						msg.setWindowTitle("pyVISA Connection")
+						msg.setWindowIcon(self.get_icon())
+						msg.setStandardButtons(QMessageBox.Ok)
+						msg.exec_()
+			
+						# Add instrument to configuraion object and reset
+						self._config._add_inst_handle(_inst)
+						self._config._get_inst_byaddr(_addr).reset()
+						self.refresh()
+
+						# Return insturemnt handle
+						return _inst
+
+
+				# Timeout here means good write but read error
+				except pyvisa.VisaIOError:
+
+					msg = QMessageBox()
+					msg.setIcon(QMessageBox.Warning)
+					msg.setText("Timeout Error: Device %s initialized but data query failed. Check %s configuration settings. Data termination character should be set to <carriage return><line feed> (\\r\\n)"%(_port, _inst.comm))
+					msg.setWindowTitle("pyVISA Error")
+					msg.setWindowIcon(self.get_icon())
+					msg.setStandardButtons(QMessageBox.Ok)
+					msg.exec_()	
+
+					return None
+
+
+			# Timeout error here means no connection
+			except pyvisa.VisaIOError:
+				
+				# Message box to display error
+				msg = QMessageBox()
+				msg.setIcon(QMessageBox.Warning)
+				msg.setText("Timeout Error: No deivce at %s"%_port)
+				msg.setWindowTitle("pyVISA Error")
+				msg.setWindowIcon(self.get_icon())
+				msg.setStandardButtons(QMessageBox.Ok)
+				msg.exec_()
+
+				return None
+		
+		else:
+
+			# Message box to display error
+			msg = QMessageBox()
+			msg.setIcon(QMessageBox.Warning)
+			msg.setText("Device Error: %s aready initialized"%_port)
+			msg.setWindowTitle("pyVISA Error")
+			msg.setWindowIcon(self.get_icon())
+			msg.setStandardButtons(QMessageBox.Ok)
+			msg.exec_()
+
+			return None
+
+
 	# Set device initialize callback
-	def set_init_callback(self, __func__):	
+	def set_init_callback(self, __func__):
 		self._init_callback = str(__func__)	
 
-	# Run the callback	
+	# Run device initialize callback	
 	def _run_init_callback(self):
+
 		if self._init_callback is not None:					
-			__func__ = getattr(self._app, self._init_callback)
+			__func__ = getattr(self._config, self._init_callback)
 			__func__()
 
-
-
-
+	# Set the callback for the insturment select combobox
+	def set_select_callback(self, __func__):
+		self.inst_widget.set_callback(__func__)
 
