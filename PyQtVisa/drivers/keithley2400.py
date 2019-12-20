@@ -35,25 +35,14 @@ from .QVisaDevice import QVisaDevice
 class keithley2400(QVisaDevice):
 
 	# Initialize Driver
-	def __init__(self, _comm, _addr, _name=None):
-
-		# Default name = "Keithley"
-		_name = "Keithley" if _name == None else str(_name)
+	def __init__(self, _resource):
 
 		# Call super
-		super(keithley2400, self).__init__(_comm, _addr, _name)
-
-	# Identify command
-	def idn(self):
-		return self.query('*IDN?')
+		super(keithley2400, self).__init__(_resource, "Keithley")
 
 	# Check idn command
 	def check_idn(self):
-		return False if "KEITHLEY INSTRUMENTS INC.,MODEL 24" not in str(self.idn()) else True
-
-	# Reset command
-	def reset(self):
-		self.write('*RST')
+		return False if "KEITHLEY INSTRUMENTS INC.,MODEL 24" not in str(self.IDN()) else True
 
 	# Trigger output state
 	def output_on(self): 
@@ -116,12 +105,14 @@ class keithley2400(QVisaDevice):
 	# Initiate measurement	
 	def meas(self):
 		self.write(":INIT")
-		self.write("*WAI")
+		self.WAI()
 
 		# Create server loop for data in order to 
 		# capture long integration times
 		while True:
+
 			try:
 				return self.query(":READ?")
+
 			except pyvisa.VisaIOError:
 				time.sleep(0.1)	

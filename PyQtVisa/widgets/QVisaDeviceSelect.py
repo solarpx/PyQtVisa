@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------------
-# 	QVisaInstWidget -> QWidget
+# 	QVisaDeviceSelect -> QWidget
 #	Copyright (C) 2019 Michael Winters
 #	github: https://github.com/mesoic
 #	email:  mesoic@protonmail.com
@@ -30,8 +30,8 @@
 # Import QT backends
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QLabel
 
-# Helper class to generate insturment select widgets
-class QVisaInstWidget(QWidget):
+# Helper class to generate and interact with initialized QVisaDevice objects
+class QVisaDeviceSelect(QWidget):
 
 	def __init__(self, _app):
 
@@ -41,16 +41,19 @@ class QVisaInstWidget(QWidget):
 		# Inst widget and layout
 		self._layout = QVBoxLayout()
 
-		# Widget label and comboBox
-		self._select = QComboBox()
-		self._select.currentTextChanged.connect(self._run_callback)
+		# Cache reference to _app for callback
+		self._app = _app 
 
 		# List of registered names
 		self._registered = []
 
+		# Widget label and comboBox
+		self._select = QComboBox()
+		self._select.currentTextChanged.connect(self._run_callback)
+		
 		# Widget select add items
-		if _app._get_inst_names() is not None:
-			self._select.addItems( _app._get_inst_names() )
+		if _app.get_device_names() is not None:
+			self._select.addItems( _app.get_device_names() )
 
 		# Add widgets to layout
 		self._layout.addWidget(self._select)
@@ -62,24 +65,11 @@ class QVisaInstWidget(QWidget):
 		# Callback function on text changed
 		self._callback = None
 
-		# Cache reference to _app for callback
-		self._app = _app 
-
-	# Expose textChanged slot
-	def set_callback(self, __func__):	
-		self._callback = str(__func__)	
-
-	# Run the callback	
-	def _run_callback(self):
-		if self._callback is not None:					
-			__func__ = getattr(self._app, self._callback)
-			__func__()
-
 	# Method to sync instrument widget to app
 	def refresh(self, _app):
 	
 		# Get current list of names registered to app
-		for _name in _app._get_inst_names():
+		for _name in _app.get_device_names():
 			
 			# If name is not registered
 			if self.isRegistered(_name) == False:
@@ -87,7 +77,6 @@ class QVisaInstWidget(QWidget):
 				# Add it to the combobox	
 				self._select.addItem(_name)	
 				self._registered.append(_name)
-
 
 	# Register insturment by name
 	def registerInst(self, _name):
@@ -113,3 +102,13 @@ class QVisaInstWidget(QWidget):
 	# Wrapper method for setFixedWidth
 	def setFixedWidth(self, _width):
 		self._select.setFixedWidth(int(_width))
+
+	# Expose textChanged slot
+	def set_callback(self, __func__):	
+		self._callback = str(__func__)	
+
+	# Run the callback	
+	def _run_callback(self):
+		if self._callback is not None:					
+			__func__ = getattr(self._app, self._callback)
+			__func__()

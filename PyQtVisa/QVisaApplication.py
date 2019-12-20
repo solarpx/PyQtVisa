@@ -34,7 +34,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
 from PyQt5.QtGui import QIcon
 
 # Import QVisaWidgets
-from .widgets.QVisaInstWidget import QVisaInstWidget
+from .widgets.QVisaDeviceSelect import QVisaDeviceSelect
 from .widgets.QVisaSaveWidget import QVisaSaveWidget
 
 # Import QVisaDataObject
@@ -73,17 +73,31 @@ class QVisaApplication(QWidget):
 	#  CONFIG WRAPPER METHODS
 	#	
 
-	# Method to get insturment handles
-	def _get_inst_handles(self):
-		return self._config._get_inst_handles()
+	def get_devices(self):
+	
+		if self._config.Devices != []:
+			return self._config.Devices
+		else:
+			return None 
+				
+	# Get all device names
+	def get_device_names(self):
 
-	# Method to get insturment names
-	def _get_inst_names(self):
-		return self._config._get_inst_names()
+		if self._config.Devices != []:
+			return [_.get_property("name") for _ in self._config.Devices]	
+		else:	
+			return None
 
-	# Method to get insturment handles
-	def _get_inst_byname(self, _name):
-		return self._config._get_inst_byname(_name)	
+	# Get device by name
+	def get_device_by_name(self, _name):
+
+		# Loop through insturment list
+		for _ in self._config.Devices:
+			if _.get_property("name") == _name:
+				return _
+
+		# If we do not find device return None		
+		return None
 
 
 	#####################################
@@ -103,8 +117,8 @@ class QVisaApplication(QWidget):
 	#	
 	
 	# Method to generate insturment widget
-	def _gen_inst_widget(self):
-		return QVisaInstWidget(self)
+	def _gen_device_select(self):
+		return QVisaDeviceSelect(self)
 
 	# Method to generate the standard save widget
 	def _gen_save_widget(self):

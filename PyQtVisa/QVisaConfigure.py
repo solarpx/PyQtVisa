@@ -41,8 +41,8 @@ import sys
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QMessageBox 
 
 # Import QVisaInstWidget and QVisaCommWidget
-from .widgets.QVisaInstWidget import QVisaInstWidget
-from .widgets.QVisaCommWidget import QVisaCommWidget
+from .widgets.QVisaDeviceSelect import QVisaDeviceSelect
+from .widgets.QVisaDeviceControl import QVisaDeviceControl
 
 # The purpouse of this object is to bind a list pyVisaDevices to a QWidget 
 # in a configuration context. The idea is to first construct a QVisaConifg
@@ -56,62 +56,56 @@ class QVisaConfigure(QWidget):
 	def __init__(self):
 
 		QWidget.__init__(self)
-		self._inst = []
+		self.Devices = []
 
-	# Add an insturment handle. 
-	# _inst is a pyVisaDevice object with 
-	# 	1) pyVisaDevice.inst (inst handle)
-	# 	2) pyVisaDevice.addr (gpib address)
-	# 	3) pyVisaDevice.name (inst name)
-	#
-	def _add_inst_handle(self, _inst):
-		self._inst.append(_inst)
+	# Add QVisaDevice objects
+	def add_device(self, _device):
+		self.Devices.append(_device)
 
-	# Get all insturment handles	
-	def _get_inst_handles(self):
+	# Get all insturment handles
+	def get_devices(self):
 	
-		if self._inst != []:
-			return self._inst
+		if self.Devices != []:
+			return self.Devices
 		else:
 			return None 
 			
-	# Get all insturment names
-	def _get_inst_names(self):
+	# Get all device names
+	def get_device_names(self):
 
-		if self._inst != []:
-			return [_.name for _ in self._inst]	
+		if self.Devices != []:
+			return [_.get_property("name") for _ in self.Devices]	
 		else:	
 			return None
 
-	# Get handle by addrress
-	def _get_inst_byaddr(self, _addr):
+	# Get device by resrouce string 
+	def get_device(self, _resource):
 
 		# Loop through insturment list
-		for _ in self._inst:
-			if _.addr == _addr:
-				return _ 
-
-		# If we do not find device return None		
-		return None
-
-	# Get handle by name
-	def _get_inst_byname(self, _name):
-
-		# Loop through insturment list
-		for _ in self._inst:
-			if _.name == _name:
-				return _ 
-
-		# If we do not find device return None		
-		return None
-
-
-	# Get insturment by port identifier
-	def _get_inst_byport(self, _port):
-		for _ in self._inst:
-			if _.port == _port:
+		for _ in self.Devices:
+			if _.get_property("resource") == _resource:
 				return _
 
+		# If we do not find device return None		
+		return None
+
+	# Get device by name
+	def get_device_by_name(self, _name):
+
+		# Loop through insturment list
+		for _ in self.Devices:
+			if _.get_property("name") == _name:
+				return _
+
+		# If we do not find device return None		
+		return None
+
+	# Close devices on app.exit()
+	def close_devices(self):
+
+		for Device in self.Devices:
+
+			Device.close()
 
 	# Helper method to pack widgets into hbox
 	def _gen_hbox_widget(self, _widget_list):
@@ -126,7 +120,7 @@ class QVisaConfigure(QWidget):
 		return _widget	
 
 	# Helper method to pack widgets into vbox
-	def _gen_hbox_widget(self, _widget_list):
+	def _gen_vbox_widget(self, _widget_list):
 	
 		_widget = QWidget()
 		_layout = QVBoxLayout()
@@ -137,10 +131,11 @@ class QVisaConfigure(QWidget):
 		_widget.setLayout(_layout)
 		return _widget
 
-	# Method to generate insturment widget
-	def _gen_inst_widget(self):
-		return QVisaInstWidget(self)
+	# Method to generate device select widget
+	def _gen_device_select(self):
+		return QVisaDeviceSelect(self)
 
 	# Method to generate communication widget
-	def _gen_comm_widget(self):
-		return QVisaCommWidget(self)
+	def _gen_device_control(self):
+		return QVisaDeviceControl(self)
+

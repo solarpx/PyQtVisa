@@ -26,82 +26,191 @@
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*-
 import pyvisa
+import re
 
 # Basic driver file for insturment
 class QVisaDevice:
 
 	# Initialize
-	def __init__(self, _comm, _addr, _name="QVisaDevice"):
+	def __init__(self, _resource, _type="QVisaDevice"):
 
-		# Cache initialization data
-		self.comm = _comm
-		self.addr = _addr 
-		self.name = _name
+		# Call parse resource
+		self.parse_resource(_resource, _type)
 
-		# Helper strings
-		self.type = _name
+		# Build alias table
+		self.alias_table()
+
+	def parse_resource(self, _resource, _type):
+
+		# Create data object
+		self.__resource = {}
 
 		# Extract insturment handle for Keithley
-		self.rm = pyvisa.ResourceManager()
+		rm = pyvisa.ResourceManager()
 
-		# Initialize communication modes
-		if _comm in ["gpib", "GPIB"]:
-			self.port = "ASRL::%s"%self.addr
-
-			self.gpib()
-
-		if _comm in ["rs232", "RS232", "RS-232"]:	
-			self.rs232()
-
-		# Create buffer object
-		self.buffer = ""
-
-	# GPIB Device
-	# Attempt to open resource. 
-	def gpib(self):	
-
-		self.inst = self.rm.open_resource('GPIB0::%s::INSTR'%self.addr)
-		self.inst.timeout = 2000
-		self.inst.clear()
-
-		# Define port
-		self.port = "GPIB0::%s"%(self.addr)
-
-		# Append Address to name
-		self.name = "%s GPIB0::%s"%(self.name, self.addr)
-
-	# Serial Device
-	# Attempt to open resource. 
-	def rs232(self):
+		# Check if resource is in driver table
+		if _resource in rm.list_resources():
 		
-		self.inst = self.rm.open_resource('ASRL%s::INSTR'%self.addr)
-		self.inst.timeout = 2000
-		self.inst.clear()		
+			self.__resource["inst"] = rm.open_resource(_resource)
 
-		# Define port
-		self.port = "ASRL::%s"%(self.addr)
+			# Standard serial port 
+			m = re.match(r'ASRL(\d+)::\w+$',  _resource, re.ASCII)
+			if m:			
 
-		# Append Address to name
-		self.name = "%s %s"%(self.name, self.port)
+				# Resource sting
+				self.__resource["resource"] = m[0]
 
+				# Resource data
+				self.__resource["comm"] = "ASRL"
+				self.__resource["addr"] = m[1]
+				self.__resource["type"] = _type
+				self.__resource["name"] = "%s ASRL%s"%(_type, str(m[1]))
+
+			# GPIB device on board
+			m = re.match(r'GPIB(\d+)::(\d+)::\w+$',  _resource, re.ASCII)
+			if m:
+
+				# Resource sting
+				self.__resource["resource"] = m[0]
+
+				# Resource data
+				self.__resource["comm"] = m[1]
+				self.__resource["addr"] = m[2]
+				self.__resource["type"] = _type
+				self.__resource["name"] = "%s GPIB%s::%s"%(_type, str(m[1]), str(m[2]))
+	
+	
+	# Return resource dictionary
+	def get_resource(self):
+		return self.__resource
+
+	# Return resource property
+	def get_property(self, _key):
+		return self.__resource[_key] if _key in self.__resource.keys() else None
+
+
+	####################################
+	#	HARDWARE IO
+	#
 
 	# Close instrument on program termination
 	def close(self): 
-		self.inst.close()
+		self.__resource["inst"].close()
+		self.__resource = {}
 
 	# Write command
 	def write(self, _data):
-		self.inst.write(_data)
+		self.__resource["inst"].write(_data)
 	
 	# Query command. Only use when reading data	
 	def query(self, _data, print_buffer=False):
 
-		# Try to communicate with device
-		self.buffer = self.inst.query(_data)
+		_buffer = self.__resource["inst"].query(_data)
 
 		# Option to print buffer
 		if print_buffer:
-			print(self.buffer)
+			print(_buffer)
 
-		# Return buffer	
-		return self.buffer
+		return _buffer
+
+	####################################
+	#	GENERAL
+	#	
+
+	# Identify command
+	def IDN(self):
+		return self.query('*IDN?')
+
+	# Reset command. Abort all activities and initialize the device
+	def RST(self):
+		self.write('*RST')
+
+	# Self test query. Perform a self-test. Returns ‘0'  if self test 
+	# completed without errors, all other values determine an error cause.
+	def TST(self):
+		self.write("*TST?")
+
+	####################################
+	#	SYNCHRONZATION
+	#	
+
+	# OPeration Complete command. Set the Operation Complete bit in the
+	# Event Status Register to '1' when all pending commands and/or queries 
+	# are finished. The controller can read this bit with the *ESR? query.
+	def OPC(self):
+		self.write('*OPC')
+
+	# OPeration Complete query. This query returns '1' when all pending
+	# commands and/or queries are finished.
+	def OPC_query(self):
+		return self.query('*OPC?')
+
+	# Wait command. Wait until all pending commands and queries are processed.
+	def WAI(self):
+		self.write('*WAI')
+
+	# Trigger command. Execute trigger function(s).
+	def TRG(self):
+		self.write('*TRG')
+
+	####################################
+	#	INSTURMENT STATUS
+	#	
+
+	# Clear Status command. Clears the whole status structure	
+	def CLS(self):
+		self.write('*CLS')
+
+	# Event Status Enable register (ESE) is used to control which bits from the ESR 
+	# are summarized in the ESB bit (5) in the Status Byte register (STB). This ESE 
+	# register is read/write.
+	def ESE(self):
+		self.write('*ESE')
+
+	# Standard Event Status Enable query	
+	def ESE_query(self):
+		return self.query('*ESE?')
+
+	# Event Status Register: contains the actual status information 
+	# derived from the instrument. This register is read only
+	def ESR_query(self):
+		return self.query('*ESR?')
+
+	# Service Request Enable command. Modify the contents of the Service Request
+	# Enable Register.	
+	def SRE(self):
+		self.write('*SRE')
+
+	# Service Request Enable query. Return the contents of the Service Request 
+	# Enable Register	
+	def SRE_query(self):
+		return self.query('*SRE')
+
+	# Status Byte query. Return the contents of the Status Byte Register.
+	def STB_query(self):
+		return self.query('*STB?')
+
+
+	####################################
+	#	ALIAS TABLE
+	#			
+	def alias_table(self):
+
+		# General shortcuts
+		self.idn = self.IDN
+		self.rst = self.RST
+		self.tst = self.TST
+		
+		# Synchronization 
+		self.wai = self.WAI 
+		self.opc = self.OPC 
+		self.opc_query = self.OPC_query
+		self.trg = self.TRG
+
+		# Insturment Status
+		self.ese = self.ESE
+		self.ese_query = self.ESE_query
+		self.esr_query = self.ESR_query
+		self.sre = self.SRE
+		self.sre_query = self.SRE_query
+		self.stb_query = self.STB_query
