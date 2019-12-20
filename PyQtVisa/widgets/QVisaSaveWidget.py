@@ -86,6 +86,7 @@ class QVisaSaveWidget(QWidget):
 			dialog = QFileDialog(self)
 			dialog.setFileMode(QFileDialog.AnyFile)
 			dialog.setViewMode(QFileDialog.Detail)
+			dialog.setAcceptMode(QFileDialog.AcceptSave)
 			filenames = []
 
 			# Select file
