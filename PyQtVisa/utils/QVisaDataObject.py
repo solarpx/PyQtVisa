@@ -264,7 +264,7 @@ class QVisaDataObject:
 
 			# We do not want to overwrite datastructures
 			if self.data != {} and overwrite == False:
-				raise AttributeError
+				raise PermissionError
 
 			# Unless explicitly specified 
 			else: 
@@ -290,6 +290,7 @@ class QVisaDataObject:
 
 							# Cache key on __data__ 
 							_key = _line[2]
+							self.add_key(_key)
 
 							# Loop through metadata lines
 							while True:	
@@ -309,7 +310,7 @@ class QVisaDataObject:
 									# Initiaize empty list for each measurement key
 									# via the class set_subkeys method
 									_subkeys = _line
-									self.data.set_subkeys(_key, _subkeys)
+									self.set_subkeys(_key, _subkeys)
 
 									# break the loop 
 									break
@@ -334,5 +335,5 @@ class QVisaDataObject:
 									# This will take top loop 
 									break
 
-		except AttributeError:
+		except PermissionError:
 			print("Overwriting existing data is protected. Use read_from_file(_filename, overwrite=True) to overwrite")
