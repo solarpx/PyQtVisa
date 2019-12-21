@@ -226,13 +226,13 @@ class QVisaDataObject:
 				# If measurement data exists on key
 				if _dict is not None:
 
+					# Write measrurement hash
+					f.write( "#! __data__ %s\n"%( str(_key) ) )	
+
 					# Write measurement metadata into header
 					for _subkey, _data in self.meta[_key].items():
 						f.write( "#! %s %s\n"%( str(_subkey), str(_data) ) ) 
 					
-					# Write measrurement hash
-					f.write( "#! __data__ %s\n"%( str(_key) ) )	
-
 					# Write data keys
 					for _subkey in _dict.keys():
 
@@ -285,31 +285,34 @@ class QVisaDataObject:
 					# If line is not empty
 					if _line != []:	
 
-						# Check for file header 
-						if _line[0] == "*!":
-
-							# If a note is included
-							if _line[1] == "note":
-
-								# Extract note
-								_note = " ".join(_line[2:]) 
-								self.set_metadata("__self__", "__note__", _note)
-
-
 						# Check for data header
-						if _line[0] == "#!":
+						if _line[0] == "#!" and _line[1] == "__data__":
 
-							_type = _line[1] # Measurement type
-							_key  = _line[2] # Measurement key(hash)				
-							self.set_metadata(_key, "__type__", _type)
+							# Cache key on __data__ 
+							_key = _line[2]
 
-							# Next line contains the measurement keys
-							_ = f.readline()
-							_subkeys = _.split()
+							# Loop through metadata lines
+							while True:	
 
-							# Initiaize empty list for each measurement key
-							# via the class set_subkeys method
-							self.data.set_subkeys(_key, _subkeys)
+								# Next line contains the measurement keys
+								_ = f.readline()
+								_line = _.split()
+
+								# If this is true, it is a metadata line
+								if _line[0] == "#!":
+
+									self.meta[_key][_line[1]] = _line[2]
+
+								# Otherwise we have reached the keys	
+								else:															
+
+									# Initiaize empty list for each measurement key
+									# via the class set_subkeys method
+									_subkeys = _line
+									self.data.set_subkeys(_key, _subkeys)
+
+									# break the loop 
+									break
 
 							# Now loop throgh data lines
 							while True:
