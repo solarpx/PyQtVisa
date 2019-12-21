@@ -217,7 +217,7 @@ class QVisaDataObject:
 				f.write( "*! note %s\n"%self.get_metadata(self.hash, "__note__") )
 			
 			# Write root hash
-			f.write("*! hash %s\n"%self.hash)
+			f.write("*! hash %s\n\n"%self.hash)
 
 			# Recall the form of self.data 
 			# 	{ _key0 : {}, _key1 : {}, ...}
@@ -226,15 +226,13 @@ class QVisaDataObject:
 				# If measurement data exists on key
 				if _dict is not None:
 
-					# Write measurement key header
-					if self.get_metadata(_key, "__type__") is not None:
-
-						f.write( "#! %s %s\n"%( self.get_metadata(_key, "__type__"), str(_key) ) ) 
-
-					else:
-						
-						f.write( "#! %s\n"%str(_key) ) 
+					# Write measurement metadata into header
+					for _subkey, _data in self.meta[_key].items():
+						f.write( "#! %s %s\n"%( str(_subkey), str(_data) ) ) 
 					
+					# Write measrurement hash
+					f.write( "#! __data__ %s\n"%( str(_key) ) )	
+
 					# Write data keys
 					for _subkey in _dict.keys():
 

@@ -35,6 +35,7 @@ from PyQt5.QtGui import QIcon
 
 # Import QVisaWidgets
 from .widgets.QVisaDeviceSelect import QVisaDeviceSelect
+from .widgets.QVisaMetaWidget import QVisaMetaWidget
 from .widgets.QVisaSaveWidget import QVisaSaveWidget
 
 # Import QVisaDataObject
@@ -104,6 +105,14 @@ class QVisaApplication(QWidget):
 	#  CONFIG WRAPPER METHODS
 	#	
 
+	# Method to set metadata 
+	def set_metadata(self, key, subkey, value):
+		self._data.set_metadata(key, subkey, value)
+
+	# Method to get metadata	
+	def get_metadata(self, key, subkey):
+		return self._data.get_metadata(key, subkey)
+
 	# Method to set app-level meta
 	def _set_app_metadata(self, key, value):
 		self._data.set_metadata( "__self__" , key, value)
@@ -119,6 +128,10 @@ class QVisaApplication(QWidget):
 	# Method to generate insturment widget
 	def _gen_device_select(self):
 		return QVisaDeviceSelect(self)
+
+	# Method to generate the standard meta widget
+	def _gen_meta_widget(self):
+		return QVisaMetaWidget(self)
 
 	# Method to generate the standard save widget
 	def _gen_save_widget(self):

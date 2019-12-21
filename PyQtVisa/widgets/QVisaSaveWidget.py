@@ -39,17 +39,11 @@ class QVisaSaveWidget(QWidget):
 
 		self._layout = QVBoxLayout()
 
-		# Save note
-		self._note_label = QLabel("Measurement Note")
-		self._note = QLineEdit()
-		self._note.setFixedWidth(200)
-		
 		# Save button
 		self._button = QPushButton("Save Data")
 		self._button.clicked.connect(self.gen_data_file)
 
 		# Pack the widget layout
-		self._layout.addWidget(_app._gen_hbox_widget([self._note, self._note_label]))
 		self._layout.addWidget(self._button)
 		self._layout.setContentsMargins(0,0,0,0)
 
@@ -68,19 +62,13 @@ class QVisaSaveWidget(QWidget):
 			msg = QMessageBox()
 			msg.setIcon(QMessageBox.Warning)
 			msg.setText("No measurement data")
-			msg.setWindowTitle("Bias Info")
+			msg.setWindowTitle("PyQtVisa Info")
 			msg.setWindowIcon(self._app._get_icon())
 			msg.setStandardButtons(QMessageBox.Ok)
 			msg.exec_()
 
 		# Otherwise save
 		else:
-
-			# Handle the save note
-			if self._note.text() != "":
-				
-				# Inject note into application meta
-				self._app._set_app_metadata( "__note__", self._note.text() )
 
 			# Open file dialog
 			dialog = QFileDialog(self)

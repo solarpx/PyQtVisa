@@ -178,6 +178,22 @@ class QVisaDynamicPlot(QWidget):
 	def set_axes_adjust(self, _left, _right, _top, _bottom):
 		self._adjust = {'l': _left, 'r': _right, 't': _top, 'b' : _bottom}	
 
+	# Add origin lines	
+	def add_origin_lines(self, _axes_key, key="both"):
+		
+		# x-line only 
+		if key == "x":
+			self._axes[_axes_key].axhline(y=0, color='k', linewidth=0.5, linestyle=":")
+
+		# y-line only 
+		if key == "y":
+			self._axes[_axes_key].axvline(x=0, color='k', linewidth=0.5, linestyle=":")	
+
+		# both lines 
+		if key == "both":
+			self._axes[_axes_key].axhline(y=0, color='k', linewidth=0.5, linestyle=":")
+			self._axes[_axes_key].axvline(x=0, color='k', linewidth=0.5, linestyle=":")
+
 	# Add handle to axes
 	def add_axes_handle(self, _axes_key, _handle_key, _color=None):
 
@@ -305,19 +321,19 @@ class QVisaDynamicPlot(QWidget):
 			msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
 			self.msg_clear = msg.exec_()
 
+			# Note that mpl_refresh_callback is run after refresh lines.
 			if self.msg_clear == QMessageBox.Yes:
 
-				self._run_mpl_refresh_callback()
 				self.refresh_lines()
+				self._run_mpl_refresh_callback()
 				return True
 
 			else:
 				return False
 
 		else:
-			
-			self._run_mpl_refresh_callback()
 			self.refresh_lines()		
+			self._run_mpl_refresh_callback()
 			return True
 
 
@@ -342,7 +358,6 @@ class QVisaDynamicPlot(QWidget):
 						# Cache the handle key for deletion if it has not beed cached yet
 						_del_cache.append(_handle_key)
 						
-
 		# Loop through cached keys
 		for _handle_key in _del_cache:
 
@@ -363,7 +378,6 @@ class QVisaDynamicPlot(QWidget):
 			if self.sync == True:
 				_data = self._app._get_data_object()
 				_data.del_key(_handle_key)
-
 
 		# If deleting all traces, reset the colormap
 		if self.mpl_handles.currentText() == "all-traces":
