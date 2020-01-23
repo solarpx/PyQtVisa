@@ -72,15 +72,23 @@ class QVisaMetaWidget(QWidget):
 	# Method to update QLineEdit on key changed
 	def update_value_field(self):
 
-		# Extract combobox value		
+		# Extract combobox value. If the keylist is empty, this 
+		# will return an empty string
 		_key = self.meta_keys.currentText()
-		_meta = self._app.get_metadata(_key, self._subkey)
 
-		# Check if meta is not none
-		if _meta is not None:
-			self.meta_value.setText(str(_meta))
-		else:
-			self.meta_value.setText("")		
+		# Check if the key list is empty
+		if _key != "":
+
+			_meta = self._app.get_metadata(_key, self._subkey)
+
+			# Check if meta is not none
+			if _meta is not None:
+				
+				self.meta_value.setText(str(_meta))
+
+			else:
+				
+				self.meta_value.setText("")		
 
 	# Method to get keys out of widget
 	def get_meta_keys(self):

@@ -192,6 +192,8 @@ class QVisaDataObject:
 		if _key == "__self__":
 			_key = self.hash
 
+		print(self.meta)
+
 		# Return none if metadata has not been set	
 		return self.meta[_key][_subkey] if _subkey in self.meta[_key].keys() else None
 
