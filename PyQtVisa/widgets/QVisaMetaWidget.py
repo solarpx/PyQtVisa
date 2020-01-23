@@ -113,11 +113,8 @@ class QVisaMetaWidget(QWidget):
 	# Method to delete meta key
 	def del_meta_key(self, key):
 
-		# Need to block signas because del_meta_key will trigger 
-		# current_text_changed which is connected to update_value_field. 
-		self.meta_keys.blockSignals(True)
+		# Note this method is non-blocking
 		self.meta_keys.removeItem(self.meta_keys.findText(key))	
-		self.meta_keys.blockSignals(False)
 
 	# Method to generate main layout
 	def gen_main_layout(self):
