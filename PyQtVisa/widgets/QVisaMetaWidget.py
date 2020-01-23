@@ -73,7 +73,7 @@ class QVisaMetaWidget(QWidget):
 	def update_value_field(self):
 
 		# Extract combobox value. If the keylist is empty, this 
-		# will return an empty string
+		# will return an empty string.
 		_key = self.meta_keys.currentText()
 
 		# Check if the key list is empty

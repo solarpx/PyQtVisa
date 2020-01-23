@@ -36,7 +36,7 @@ except ImportError:
 
 setup(name='PyQtVisa',
 		description='Qt framework for building PyVISA applications for GPIB, RS232, TCPIP and USB instruments',
-		version='1.1.dev5',
+		version='1.1.dev6',
 		author='Michael Winters',
 		author_email="mesoic@protonmail.com",
 		url="https://github.com/mesoic/PyQtVisa",
