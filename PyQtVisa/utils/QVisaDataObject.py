@@ -162,7 +162,7 @@ class QVisaDataObject:
 
 	# Method to delete subkey
 	def del_subkey(self, _key, _subkey):
-		if _subkey in self.data[_key].keys():
+		if _subkey in self.data[_key].keys():		
 			del self.data[_key][_subkey]
 
 

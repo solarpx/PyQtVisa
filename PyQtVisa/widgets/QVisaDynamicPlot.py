@@ -133,7 +133,7 @@ class QVisaDynamicPlot(QWidget):
 	def _run_mpl_refresh_callback(self):	
 		if self.mpl_refresh_callback is not None:					
 			__func__ = getattr(self._app, self.mpl_refresh_callback)
-			__func__()	
+			__func__()
 
 	# Sync application data. When True, refresh lines will attempt to 
 	# del self._app._data.data[_handle_key] when clearing data in axes 
@@ -366,10 +366,11 @@ class QVisaDynamicPlot(QWidget):
 
 				# Remove handles (mpl.Artist obejcts) by calling destructor
 				for _handle in self._handles.get_subkey_data(_axes_key, _handle_key):
+					
 					_handle.remove()
 
-			# Delete the _handle_key from _handles object
-			self._handles.del_subkey(_axes_key, _handle_key)
+				# Delete the _handle_key from _handles object
+				self._handles.del_subkey(_axes_key, _handle_key)
 					
 			# Remove _handle_key from dropdown
 			self.mpl_handles.removeItem(self.mpl_handles.findText(_handle_key))
