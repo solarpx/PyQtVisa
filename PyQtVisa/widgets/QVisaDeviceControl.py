@@ -103,7 +103,7 @@ class QVisaDeviceControl(QWidget):
 	# Method to get current insturemnt
 	def get_current_device(self):
 
-		_name = self.resource_select.currentText() 
+		_name = self.device_select.currentText() 
 		Device = self._config.get_device_by_name(_name)
 
 		if Device is not None:
