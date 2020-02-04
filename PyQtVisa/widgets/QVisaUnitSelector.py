@@ -90,7 +90,7 @@ class QVisaUnitSelector(QWidget):
 			if self.unit_select.currentText() != "":
 
 				# Calculate unit limit in updated units
-				_limit = float(self.config["limit"]) / float( self._units[self.unit_select.currentText()] )
+				_limit = ( self.config["limit"][0] * self._base[self.config["limit"][1]] ) / float( self._units[self.unit_select.currentText()] )
 				
 				# Calculate ratio between previous and current units
 				_ratio = float( self._units[ self._selected ] ) / float( self._units[ self.unit_select.currentText() ] )
@@ -118,19 +118,19 @@ class QVisaUnitSelector(QWidget):
 
 			if self.config['unit'] == "__DOUBLE__":
 
-				self.unit_value.setMaximum( self.config["limit"] )
+				self.unit_value.setMaximum(self.config["limit"][0] )
 				
 				if self.config["signed"] == True:
-					self.unit_value.setMinimum( self.config["limit"] ) 
+					self.unit_value.setMinimum(self.config["limit"][0] ) 
 				else: 
 					self.unit_value.setMinimum( 0.0 )
 
 			if self.config['unit'] == "__INT__":
 
-				self.unit_value.setMaximum( int( self.config["limit"] ) )
+				self.unit_value.setMaximum( int( self.config["limit"][0] ) )
 				
 				if self.config["signed"] == True:
-					self.unit_value.setMinimum( int( self.config["limit"] ) )
+					self.unit_value.setMinimum( int( self.config["limit"][0] ) )
 				else: 
 					self.unit_value.setMinimum( 0 )
 

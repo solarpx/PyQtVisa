@@ -70,7 +70,7 @@ class QVisaDataObject:
 
 	# Method to get subkeys	
 	def subkeys(self, _key):
-		return self.data[_key].keys()	
+		return self.data[_key].keys()
 
 	# Method to get subitems
 	def subitems(self, _key):
