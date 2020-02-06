@@ -28,6 +28,7 @@
 # -*- coding: utf-8 -*-
 import time
 import hashlib 
+import collections
 
 # Class to manage measurement data collected by PyQtVisa applications. Data always 
 # takes the following format: 
@@ -49,8 +50,8 @@ class QVisaDataObject:
 	def __init__(self):
 
 		# Initialize data and meta dictionaries
-		self.data = {}
-		self.meta = {}
+		self.data = collections.OrderedDict()
+		self.meta = collections.OrderedDict()
 
 		# Generate hash for data object
 		self.hash = self._gen_root_key()
@@ -87,6 +88,7 @@ class QVisaDataObject:
 	# Method to reset data dictionaty
 	def reset(self):
 		self.data = {}
+
 
 	#####################################
 	#  DATA INTERACTION - KEY
@@ -250,16 +252,18 @@ class QVisaDataObject:
 										
 					# Write data values. 
 					# Use length of first column for index iterator
-					for i in range( len( _dict[ list(_dict.keys())[0] ] ) ):
+					if _dict != {}:
 
-						# Go across the dictionary keys on iterator
-						for _subkey in _dict.keys():
+						for i in range( len( _dict[ list(_dict.keys())[0] ] ) ):
 
-							f.write( "%s\t"%str(_dict[_subkey][i]) )
-					
-						f.write("\n")
+							# Go across the dictionary keys on iterator
+							for _subkey in _dict.keys():
 
-					f.write("\n\n")
+								f.write( "%s\t"%str(_dict[_subkey][i]) )
+						
+							f.write("\n")
+
+						f.write("\n\n")
 
 			f.close()
 
@@ -285,63 +289,80 @@ class QVisaDataObject:
 			# Start the read sequence
 			with f:
 
-				while _:
+				# While line is not equal to python EOF
+				while _ != '':
 
+					# Readline and split
 					_ = f.readline()
 					_line = _.split()
 
-					# If line is not empty
-					if _line != []:	
+					# Continue if line contains only whitespace 
+					if _line == []:
 
-						# Check for data header
+						continue
+
+					# Otherwise we have reached a data block
+					else:
+
+
+						# Check for data header before entering datablock subloop
 						if _line[0] == "#!" and _line[1] == "__data__":
 
 							# Cache key on __data__ 
 							_key = _line[2]
 							self.add_key(_key)
 
-							# Loop through metadata lines
-							while True:	
+							# Need to check when we exit metadata sub-block key subkeys
+							_in_meta = True
 
-								# Next line contains the measurement keys
+							# Subloop for data block.
+							while True: 
+
+								# Read datablock line
 								_ = f.readline()
 								_line = _.split()
 
-								# If this is true, it is a metadata line
-								if _line[0] == "#!":
+								# If line is empty end of data block has been reached
+								if _line == []:
 
-									self.meta[_key][_line[1]] = _line[2]
-
-								# Otherwise we have reached the keys	
-								else:															
-
-									# Initiaize empty list for each measurement key
-									# via the class set_subkeys method
-									_subkeys = _line
-									self.set_subkeys(_key, _subkeys)
-
-									# break the loop 
 									break
 
-							# Now loop throgh data lines
-							while True:
+								# Otherwise process the line
+								else: 
 
-								_ = f.readline()
-								_line = _.split()
+									# If this is true, it is a metadata line
+									if _line[0] == "#!":
 
-								# Next line should not be empty
-								if _line != []:	
+										self.meta[_key][_line[1]] = _line[2]
 
-									# Read data into 
-									for _subkey, _value in zip(_subkeys, _line):
-									
-										self.data[_key][_subkey].append( float(_value) )
+									# Otherwise it is the subkey line or a data line
+									else:															
 
-								# If next line is empty we have reached the end of the data block
-								else:
+										# If if is the first non #! line, we have reached the subkey 
+										# line. Treat as a special case of w.r.t. the parser.
+										if _in_meta == True:
 
-									# This will take top loop 
-									break
+											# Initiaize empty list for each measurement key
+											# via the class set_subkeys method
+											_subkeys = _line
+											self.set_subkeys(_key, _subkeys)
+											
+											# Flip the switch and start processing data lines
+											_in_meta = False
+
+
+										# Case of ordinary data lines
+										else:	
+
+											# Next line should not be empty
+											if _line != []:	
+
+												# Read data into 
+												for _subkey, _value in zip(_subkeys, _line):
+												
+													self.data[_key][_subkey].append( float(_value) )
+
 
 		except PermissionError:
+
 			print("Overwriting existing data is protected. Use read_from_file(_filename, overwrite=True) to overwrite")
