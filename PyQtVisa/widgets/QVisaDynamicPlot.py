@@ -289,12 +289,6 @@ class QVisaDynamicPlot(QWidget):
 	# Method to update canvas dynamically
 	def update_canvas(self):
 
-		# Loop through all figure axes and relimit
-		for _key, _axes in self._axes.items():
-			_axes.relim()
-			_axes.autoscale_view()
-			_axes.ticklabel_format(style='sci', scilimits=(0,0), axis='y', useOffset=False)
-
 		# Adjust subplots	
 		plt.subplots_adjust(
 			left 	= self._adjust['l'], 
@@ -302,7 +296,20 @@ class QVisaDynamicPlot(QWidget):
 			top  	= self._adjust['t'],
 			bottom	= self._adjust['b']
 		)
+
+		# Loop through all figure axes and relimit
+		for _key, _axes in self._axes.items():
+
+			_axes.relim()
+			_axes.set_xlim(left=None, right=None, emit=True, auto=True)
+			_axes.set_ylim(bottom=None, top=None, emit=True, auto=True)
+			_axes.autoscale_view(scalex=True, scaley=True)
+
+			# Only needed if plotting on linear scale
+			if _axes.get_yscale() == "linear":
+				_axes.ticklabel_format(style='sci', scilimits=(0,0), axis='y', useOffset=False)
 	
+
 		# Draw and flush_events
 		self.mpl_canvas.draw()
 		self.mpl_canvas.flush_events()
